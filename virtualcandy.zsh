@@ -96,7 +96,7 @@ function vcbundle()
 
 function vcmod()
 {
-    _vcmod
+    _vcmod $@
 } #vcmod
 
 function vc_auto_activate()
