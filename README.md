@@ -148,6 +148,11 @@ This function is intended for internal use by VirtualCandy iteself, but it is
 available to the user.
 
 
+### vcin
+
+A wrapper around `pip install`. All arguments to `vcin` are passed to `pip
+install`. After `pip install` is run `vcfreeze` is run.
+
 ## References
 
 * [Python](http://www.python.org/)

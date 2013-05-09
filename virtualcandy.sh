@@ -89,6 +89,11 @@ function vc_auto_activate()
     _vc_auto_activate $@
 } #vc_auto_activate
 
+vcin()
+{
+    _vcin $@
+} #vcin
+
 # Automatically activate the current directories
 # Virtualenv is one exists
 if [[ "$VC_AUTO_ACTIVATION" == "true" ]]; then
