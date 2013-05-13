@@ -279,3 +279,20 @@ function _vc_auto_activate()
     fi
 } #_vc_auto_activate
 
+
+function _vc_reset()
+{
+    
+    to="$(vcfindenv $@)"
+    dto=$(dirname "$to")
+    if [[ -d "$to" ]]; then
+        rm -ifr "$to"
+        if [[ "$?" != '0' ]]; then
+            exit 1
+        fi
+        cd $dto
+        vcstart
+    fi
+
+    cd -
+} #_vc_reset
