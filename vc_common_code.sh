@@ -261,17 +261,19 @@ function _vcmod()
 {
     if [[ -z $1 ]]
     then
-        echo "$0: A module name is required."
+        echo "$0: At least one module name is required."
         exit 1
     fi 
 
-    mkdir -p "$1"
-    if [[ ! -f "$1/__init__.py" ]]
-    then
-        touch "$1/__init__.py" 
-    else
-        echo "$0: A module named $1 already exists."
-    fi
+    for m in $@ ; do
+        mkdir -p "$m"
+        if [[ ! -f "$m/__init__.py" ]]
+        then
+            touch "$m/__init__.py" 
+        else
+            echo "$0: A module named $m already exists."
+        fi
+    done
 } #_vcmod
 
 _vcin()
