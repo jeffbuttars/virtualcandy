@@ -130,6 +130,11 @@ function vcmod()
     _vcmod $@
 } #vcmod
 
+function vcin()
+{
+    _vcin $@
+} #vcin
+
 function vc_auto_activate()
 {
     _vc_auto_activate $@

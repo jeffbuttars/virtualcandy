@@ -25,6 +25,11 @@ then
     VC_AUTO_ACTIVATION=false
 fi
 
+if [[ -z $VC_PYTHON_EXE ]]
+then
+    VC_PYTHON_EXE=$(basename $(which python))
+fi
+
 function _vcfinddir()
 {
     cur=$PWD
@@ -45,6 +50,10 @@ function _vcfinddir()
         cur=$(dirname $cur)
     done
 
+    if [[ "$cur" == "/" ]]; then
+        found="false"
+    fi
+
     if [[ "$found" == "false" ]]; then
         echo ""
     fi
@@ -62,20 +71,20 @@ function _vcstart()
         shift
     fi
 
-    virtualenv $vname
+    virtualenv --python=$VC_PYTHON_EXE $vname
     . $vname/bin/activate
 
     if [[ -f requirements.txt ]]; then
         pip install -r $VC_DEFUALT_VENV_REQFILE
-    else
-        touch $VC_DEFUALT_VENV_REQFILE
     fi
 
     for pkg in $@ ; do
         pip install $pkg
     done
 
-    vcfreeze
+    if [[ ! -f requirements.txt ]]; then
+        vcfreeze
+    fi
 } #_vcstart
 
 # A simple, and generic, pip update script.
@@ -174,6 +183,7 @@ function _vcfreeze()
 
     vcactivate
 
+    mv "$vd/$VC_DEFUALT_VENV_REQFILE"  "$vd/.${VC_DEFUALT_VENV_REQFILE}.bak"
     pip freeze > "$vd/$VC_DEFUALT_VENV_REQFILE"
     cat  "$vd/$VC_DEFUALT_VENV_REQFILE"
 } #_vcfreeze
@@ -204,7 +214,9 @@ function _vctags()
     vloc=$(vcfindenv)
     filelist="$vloc"
 
-    ccmd="ctags --sort=yes --tag-relative=no -R --python-kinds=-i"
+    # ccmd="ctags --sort=yes --tag-relative=no -R --python-kinds=-i"
+    ccmd="ctags --tag-relative=no -R --python-kinds=-i"
+    echo "$ccmd"
     if [[ -n $vloc ]]; then
         echo "Making tags with $vloc"
         filelist="$vloc"
@@ -261,6 +273,18 @@ function _vcmod()
         echo "$0: A module named $1 already exists."
     fi
 } #_vcmod
+
+_vcin()
+{
+    if [[ -z $1 ]]
+    then
+        echo "$0: No parameters given. What do you want to install?"
+        exit 1
+    fi 
+
+    pip install $@
+    vcfreeze
+} #_vcin
 
 function _vc_auto_activate()
 {
