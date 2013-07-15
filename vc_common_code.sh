@@ -10,6 +10,8 @@
 # Shell specific code goes into each shells
 # primary file.
 
+VC_PROJECT_FILE=".vc_proj"
+
 if [[ -z $VC_DEFUALT_VENV_NAME ]]
 then
     VC_DEFUALT_VENV_NAME='.venv'
@@ -30,8 +32,30 @@ then
     VC_PYTHON_EXE=$(basename $(which python))
 fi
 
+if [[ -z $VC_NEW_SHELL ]]
+then
+    # Highly recommend using 'yes', but the default behavior of
+    # virtualenv is not use a new shell, so we mimick it's defaults.
+    VC_NEW_SHELL='no'
+fi
+
+_vc_source_project_file()
+{
+    # If a project file exists, source it.
+    if [[ -f "$VC_PROJECT_FILE" ]]; then
+        echo "Sourcing project file $VC_PROJECT_FILE"
+        if [[ "$SHELL" == "bash" ]]; then
+            . ./"$VC_PROJECT_FILE" 
+        else
+            source ./"$VC_PROJECT_FILE" 
+        fi
+    fi
+} #_vc_source_project_file
+
+
 function _vcfinddir()
 {
+    _vc_source_project_file
     cur=$PWD
     vname=$VC_DEFUALT_VENV_NAME
     found='false'
@@ -63,6 +87,17 @@ function _vcfinddir()
 # rebuild on from a requirements.txt file.
 function _vcstart()
 {
+
+    _vc_source_project_file
+
+    if [[ "$VC_NEW_SHELL" != 'no' ]]; then
+        # get our current shell
+        C_SHELL="$SHELL"
+
+        # Enter the new shell and start up the env.
+        $C_SHELL -c "$THIS_DIR/vc_new_shell.sh"
+    fi
+
     vname=$VC_DEFUALT_VENV_NAME
     if [[ -n $1 ]]; then
         if [[ "$1" != "-" ]]; then
@@ -71,6 +106,7 @@ function _vcstart()
         shift
     fi
 
+    echo "virtualenv --python=$VC_PYTHON_EXE $vname"
     virtualenv --python=$VC_PYTHON_EXE $vname
     . $vname/bin/activate
 
@@ -99,6 +135,7 @@ function _vcstart()
 # This function is used by the vcpkgup function
 function _pip_update()
 {
+    _vc_source_project_file
     reqf="requirements.txt"
 
     if [[ -n $VC_DEFUALT_VENV_REQFILE ]]; then
@@ -129,6 +166,7 @@ function _pip_update()
 # and re-freeze them
 function _vcpkgup()
 {
+    _vc_source_project_file
     local vname=$VC_DEFUALT_VENV_NAME
 
     if [[ -n $1 ]]; then
@@ -156,6 +194,7 @@ function _vcpkgup()
 
 function _vcfindenv()
 {
+    _vc_source_project_file
     cur=$PWD
     local vname=$VC_DEFUALT_VENV_NAME
 
@@ -174,6 +213,7 @@ function _vcfindenv()
 
 function _vcfreeze()
 {
+    _vc_source_project_file
     vd=''
     if [[ -n $1 ]]; then
         vd=$(vcfinddir $1)
@@ -190,6 +230,7 @@ function _vcfreeze()
 
 function _vcactivate()
 {
+    _vc_source_project_file
     
     local vname=$VC_DEFUALT_VENV_NAME
     vloc=''
@@ -211,6 +252,7 @@ function _vcactivate()
 
 function _vctags()
 {
+    _vc_source_project_file
     vloc=$(vcfindenv)
     filelist="$vloc"
 
@@ -249,6 +291,7 @@ function _vctags()
 
 function _vcbundle()
 {
+    _vc_source_project_file
     vcactivate
     vdir=$(vcfinddir)
     bname="${VC_DEFUALT_VENV_NAME#.}.pybundle"
@@ -259,6 +302,7 @@ function _vcbundle()
 
 function _vcmod()
 {
+    _vc_source_project_file
     if [[ -z $1 ]]
     then
         echo "$0: At least one module name is required."
@@ -278,6 +322,7 @@ function _vcmod()
 
 _vcin()
 {
+    _vc_source_project_file
     if [[ -z $1 ]]
     then
         echo "$0: No parameters given. What do you want to install?"
@@ -308,7 +353,6 @@ function _vc_auto_activate()
 
 function _vc_reset()
 {
-    
     to="$(vcfindenv $@)"
     dto=$(dirname "$to")
     if [[ -d "$to" ]]; then
