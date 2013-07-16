@@ -43,7 +43,7 @@ _vc_source_project_file()
 {
     # If a project file exists, source it.
     if [[ -f "$VC_PROJECT_FILE" ]]; then
-        echo "Sourcing project file $VC_PROJECT_FILE"
+        # echo -e "Sourcing project file $VC_PROJECT_FILE\n"
         if [[ "$SHELL" == "bash" ]]; then
             . ./"$VC_PROJECT_FILE" 
         else
