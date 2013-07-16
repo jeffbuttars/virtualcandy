@@ -362,7 +362,7 @@ function _vc_reset()
         fi
         cd $dto
         vcstart
+        cd -
     fi
 
-    cd -
 } #_vc_reset
