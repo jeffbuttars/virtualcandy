@@ -32,6 +32,11 @@ then
     VC_PYTHON_EXE=$(basename $(which python))
 fi
 
+if [[ -z $VC_VIRTUALENV_EXE ]]
+then
+    VC_VIRTUALENV_EXE=$(basename $(which virtualenv))
+fi
+
 if [[ -z $VC_NEW_SHELL ]]
 then
     # Highly recommend using 'yes', but the default behavior of
@@ -106,8 +111,8 @@ function _vcstart()
         shift
     fi
 
-    echo "virtualenv --python=$VC_PYTHON_EXE $vname"
-    virtualenv --python=$VC_PYTHON_EXE $vname
+    echo "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname"
+    $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname
     . $vname/bin/activate
 
     if [[ -f requirements.txt ]]; then
