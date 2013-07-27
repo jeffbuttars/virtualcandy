@@ -29,12 +29,23 @@ fi
 
 if [[ -z $VC_PYTHON_EXE ]]
 then
-    VC_PYTHON_EXE=$(basename $(which python))
+
+    res=$(which python2.7)
+    if [[ -n $res ]]; then
+        VC_PYTHON_EXE=$(basename $(which python2.7))
+    else
+        VC_PYTHON_EXE=$(basename $(which python))
+    fi
 fi
 
 if [[ -z $VC_VIRTUALENV_EXE ]]
 then
-    VC_VIRTUALENV_EXE=$(basename $(which virtualenv))
+    res=$(which virtualenv2)
+    if [[ -n $res ]]; then
+        VC_VIRTUALENV_EXE=$(basename $(which virtualenv2))
+    else
+        VC_VIRTUALENV_EXE=$(basename $(which virtualenv))
+    fi
 fi
 
 if [[ -z $VC_NEW_SHELL ]]
