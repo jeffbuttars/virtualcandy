@@ -29,7 +29,23 @@ fi
 
 if [[ -z $VC_PYTHON_EXE ]]
 then
-    VC_PYTHON_EXE=$(basename $(which python))
+
+    res=$(which python2.7)
+    if [[ -n $res ]]; then
+        VC_PYTHON_EXE=$(basename $(which python2.7))
+    else
+        VC_PYTHON_EXE=$(basename $(which python))
+    fi
+fi
+
+if [[ -z $VC_VIRTUALENV_EXE ]]
+then
+    res=$(which virtualenv2)
+    if [[ -n $res ]]; then
+        VC_VIRTUALENV_EXE=$(basename $(which virtualenv2))
+    else
+        VC_VIRTUALENV_EXE=$(basename $(which virtualenv))
+    fi
 fi
 
 if [[ -z $VC_NEW_SHELL ]]
@@ -43,7 +59,6 @@ _vc_source_project_file()
 {
     # If a project file exists, source it.
     if [[ -f "$VC_PROJECT_FILE" ]]; then
-        # echo "Sourcing project file $VC_PROJECT_FILE"
         if [[ "$SHELL" == "bash" ]]; then
             . ./"$VC_PROJECT_FILE" 
         else
@@ -106,8 +121,8 @@ function _vcstart()
         shift
     fi
 
-    echo "virtualenv --python=$VC_PYTHON_EXE $vname"
-    virtualenv --python=$VC_PYTHON_EXE $vname
+    echo "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname"
+    $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname
     . $vname/bin/activate
 
     if [[ -f requirements.txt ]]; then
