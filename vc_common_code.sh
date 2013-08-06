@@ -40,11 +40,13 @@ fi
 
 if [[ -z $VC_VIRTUALENV_EXE ]]
 then
-    res=$(which virtualenv2)
-    if [[ -n $res ]]; then
-        VC_VIRTUALENV_EXE=$(basename $(which virtualenv2))
-    else
-        VC_VIRTUALENV_EXE=$(basename $(which virtualenv))
+
+    VC_VIRTUALENV_EXE=virtualenv
+
+    which virtualenv2 > /dev/null
+    res="$?"
+    if [[ "$res" == "0" ]]; then
+        VC_VIRTUALENV_EXE=$(basename "$(which virtualenv2)")
     fi
 fi
 
