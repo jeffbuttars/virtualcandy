@@ -24,7 +24,7 @@ fi
 
 if [[ -z $VC_AUTO_ACTIVATION ]]
 then
-    VC_AUTO_ACTIVATION=false
+    VC_AUTO_ACTIVATION=true
 fi
 
 if [[ -z $VC_PYTHON_EXE ]]
