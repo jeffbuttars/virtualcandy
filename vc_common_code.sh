@@ -123,17 +123,17 @@ function _vcstart()
         shift
     fi
 
-    echo "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname"
-    $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname
+    echo "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname"
+    $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname
     . $vname/bin/activate
 
     if [[ -f requirements.txt ]]; then
         pip install -r $VC_DEFUALT_VENV_REQFILE
     fi
 
-    for pkg in $@ ; do
-        pip install $pkg
-    done
+    # for pkg in $@ ; do
+    #     pip install $pkg
+    # done
 
     if [[ ! -f requirements.txt ]]; then
         vcfreeze
@@ -254,6 +254,7 @@ function _vcactivate()
 
     if [[ -n $1 ]]; then
         vname="$1"
+        shift
     fi
 
     vloc=$(vcfindenv)
