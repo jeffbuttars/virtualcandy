@@ -344,7 +344,7 @@ _vcin()
     then
         echo "$0: No parameters given. Running install on requirements.txt"
         pip install -r "$(_vcfinddir)/requirements.txt"
-        exit $?
+        vcfreeze
     fi 
 
     pip install $@
