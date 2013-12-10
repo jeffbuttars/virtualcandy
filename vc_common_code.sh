@@ -360,10 +360,13 @@ _vcin()
 
 function _vc_auto_activate()
 {
+    # see if we're under a virtualenv.
     local c_venv="$(vcfindenv)"
+
     if [[ ! -z $c_venv ]]; then
-        # echo "current env: ~${c_venv#$HOME/}"
-        # If we're activated, switch.
+        # We're in/under an environment.
+        # If we're activated, switch to the new one if it's different from the
+        # current.
         if [[ ! -z $VIRTUAL_ENV ]]; then
             from="~/${VIRTUAL_ENV#$HOME/}"
             to="~/${c_venv#$HOME/}"
@@ -376,6 +379,10 @@ function _vc_auto_activate()
         if [[ -z $VIRTUAL_ENV ]]; then
             vcactivate
         fi
+    elif [[ ! -z $VIRTUAL_ENV ]]; then
+        # We've left an environment, so deactivate.
+        echo "Deactivating ~/${VIRTUAL_ENV#$HOME/}"
+        deactivate
     fi
 } #_vc_auto_activate
 
