@@ -24,7 +24,7 @@ fi
 
 if [[ -z $VC_AUTO_ACTIVATION ]]
 then
-    VC_AUTO_ACTIVATION=false
+    VC_AUTO_ACTIVATION=true
 fi
 
 if [[ -z $VC_PYTHON_EXE ]]
@@ -343,8 +343,9 @@ _vcin()
     _vc_source_project_file
     if [[ -z $1 ]]
     then
-        echo "$0: No parameters given. What do you want to install?"
-        exit 1
+        echo "$0: No parameters given. Running install on requirements.txt"
+        pip install -r "$(_vcfinddir)/requirements.txt"
+        vcfreeze
     fi 
 
     pip install $@
