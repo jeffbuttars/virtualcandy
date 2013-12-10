@@ -362,32 +362,21 @@ function _vc_auto_activate()
 {
     local c_venv="$(vcfindenv)"
     if [[ ! -z $c_venv ]]; then
+        # echo "current env: ~${c_venv#$HOME/}"
         # If we're activated, switch.
         if [[ ! -z $VIRTUAL_ENV ]]; then
-            if [[ "$VIRTUAL_ENV" != "$PWD/$VC_DEFUALT_VENV_NAME" ]]; then
-                from="~${VIRTUAL_ENV#$HOME/}"
-                to="~${c_venv#$HOME/}"
-                echo -e "Switching from $from to $to"
+            from="~/${VIRTUAL_ENV#$HOME/}"
+            to="~/${c_venv#$HOME/}"
+            if [ "$from" != "$to" ]; then
+                echo -e "Switching from '$from' to '$to'"
                 deactivate
             fi
         fi
-        vcactivate
+
+        if [[ -z $VIRTUAL_ENV ]]; then
+            vcactivate
+        fi
     fi
-
-
-    # if [[ -d "$VC_DEFUALT_VENV_NAME" ]]; then
-    #     if [[ -n $VIRTUAL_ENV ]]; then
-    #         if [[ "$VIRTUAL_ENV" != "$PWD/$VC_DEFUALT_VENV_NAME" ]]; then
-    #             from="~${VIRTUAL_ENV#$HOME/}"
-    #             to="$(vcfindenv)"
-    #             to="~${to#$HOME/}"
-    #             echo -e "Switching from $from to $to"
-    #             deactivate
-    #         fi
-    #     fi
-
-    #     vcactivate
-    # fi
 } #_vc_auto_activate
 
 
