@@ -186,16 +186,19 @@ function _vcpkgup()
     _vc_source_project_file
     local vname=$VC_DEFUALT_VENV_NAME
 
-    if [[ -n $1 ]]; then
-        vname="$1"
-    fi
-
     vdir=$(vcfinddir $vname)
 
     reqlist="$vdir/$VC_DEFUALT_VENV_REQFILE"
-    echo "Using req list $reqlist"
 
-    if [[ -f $reqlist ]]; then
+    if [ ! -z $1 ]; then
+        echo "Updating $@"
+        for pkg in "$@" ; do
+            pip install -U --no-deps $pkg
+            res=$?
+        done
+        vcfreeze $vname
+    elif [[ -f $reqlist ]]; then
+        echo "Updating all in $reqlist"
         vcactivate $vname
         pip_update $reqlist
         res=$?
@@ -204,6 +207,9 @@ function _vcpkgup()
         else
             echo "Bad exit status from pip_update, not freezing the package list."
         fi
+    else
+        echo "No requirements.txt file found!"
+        res=0
     fi
     
     return $res
