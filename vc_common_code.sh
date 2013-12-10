@@ -342,8 +342,9 @@ _vcin()
     _vc_source_project_file
     if [[ -z $1 ]]
     then
-        echo "$0: No parameters given. What do you want to install?"
-        exit 1
+        echo "$0: No parameters given. Running install on requirements.txt"
+        pip install -r "$(_vcfinddir)/requirements.txt"
+        exit $?
     fi 
 
     pip install $@
