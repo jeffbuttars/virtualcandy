@@ -360,19 +360,34 @@ _vcin()
 
 function _vc_auto_activate()
 {
-    if [[ -d "$VC_DEFUALT_VENV_NAME" ]]; then
-        if [[ -n $VIRTUAL_ENV ]]; then
+    local c_venv="$(vcfindenv)"
+    if [[ ! -z $c_venv ]]; then
+        # If we're activated, switch.
+        if [[ ! -z $VIRTUAL_ENV ]]; then
             if [[ "$VIRTUAL_ENV" != "$PWD/$VC_DEFUALT_VENV_NAME" ]]; then
                 from="~${VIRTUAL_ENV#$HOME/}"
-                to="$(vcfindenv)"
-                to="~${to#$HOME/}"
+                to="~${c_venv#$HOME/}"
                 echo -e "Switching from $from to $to"
                 deactivate
             fi
         fi
-
         vcactivate
     fi
+
+
+    # if [[ -d "$VC_DEFUALT_VENV_NAME" ]]; then
+    #     if [[ -n $VIRTUAL_ENV ]]; then
+    #         if [[ "$VIRTUAL_ENV" != "$PWD/$VC_DEFUALT_VENV_NAME" ]]; then
+    #             from="~${VIRTUAL_ENV#$HOME/}"
+    #             to="$(vcfindenv)"
+    #             to="~${to#$HOME/}"
+    #             echo -e "Switching from $from to $to"
+    #             deactivate
+    #         fi
+    #     fi
+
+    #     vcactivate
+    # fi
 } #_vc_auto_activate
 
 
