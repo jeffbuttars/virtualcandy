@@ -4,6 +4,31 @@
 # git@github.com:jeffbuttars/virtualcandy.git
 # See the README.md
 
+KNRM="\033[0m"
+KRED="\033[0;31m"
+KGRN="\033[0;32m"
+# KYEL="\x1B[33m"
+KBLU="\033[0;34m"
+# KMAG="\x1B[35m"
+# KCYN="\x1B[36m"
+# KWHT="\x1B[37m"
+
+pr_pass()
+{
+    # echo "$1"
+    echo -en "${KGRN}$*${KNRM}"
+} #make_pass
+
+pr_fail()
+{
+    echo -en "${KRED}$*${KNRM}"
+} #make_fail
+
+pr_info()
+{
+    echo -en "${KBLU}$*${KNRM}"
+} #make_info
+
 
 # Common code sourced by both bash and zsh
 # implimentations of virtualcandy.
@@ -123,7 +148,7 @@ function _vcstart()
         shift
     fi
 
-    echo "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname"
+    pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname\n"
     $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname
     . $vname/bin/activate
 
@@ -166,17 +191,17 @@ function _pip_update()
     res=0
     if [[ -f $reqf ]]; then
         tfile="/tmp/pkglist_$RANDOM.txt"
-        echo $tfile
+        pr_info "$tfile\n"
         cat $reqf | awk -F '==' '{print $1}' > $tfile
         pip install --upgrade -r $tfile
         res=$?
         rm -f $tfile
     else
-        echo "Unable to find package list file: $reqf"
+        pr_fail "Unable to find package list file: $reqf\n"
         res=1
     fi
 
-    return $res
+    echo $res
 } #_pip_update
 
 # Upgrade the nearest virtualenv packages
@@ -191,24 +216,24 @@ function _vcpkgup()
     reqlist="$vdir/$VC_DEFUALT_VENV_REQFILE"
 
     if [ ! -z $1 ]; then
-        echo "Updating $@"
+        pr_info "Updating $@\n"
         for pkg in "$@" ; do
             pip install -U --no-deps $pkg
             res=$?
         done
         vcfreeze $vname
     elif [[ -f $reqlist ]]; then
-        echo "Updating all in $reqlist"
+        pr_info "Updating all in $reqlist\n"
         vcactivate $vname
         pip_update $reqlist
         res=$?
         if [[ "$res" == 0 || "$res" == "" ]]; then
             vcfreeze $vname
         else
-            echo "Bad exit status from pip_update, not freezing the package list."
+            pr_fail "Bad exit status from pip_update, not freezing the package list.\n"
         fi
     else
-        echo "No requirements.txt file found!"
+        pr_fail "No requirements.txt file found!\n"
         res=0
     fi
     
@@ -266,10 +291,10 @@ function _vcactivate()
     vloc=$(vcfindenv)
 
     if [[ -n $vloc ]]; then
-        echo "Activating ~${vloc#$HOME/}"
+        pr_pass "Activating ~${vloc#$HOME/}\n"
         . "$vloc/bin/activate"
     else
-        echo "No virtualenv name $vname found."
+        pr_fail "No virtualenv name $vname found.\n"
     fi
 
 } #_vcactivate
@@ -282,9 +307,9 @@ function _vctags()
 
     # ccmd="ctags --sort=yes --tag-relative=no -R --python-kinds=-i"
     ccmd="ctags --tag-relative=no -R --python-kinds=-i"
-    echo "$ccmd"
+    pr_info "$ccmd\n"
     if [[ -n $vloc ]]; then
-        echo "Making tags with $vloc"
+        pr_info "Making tags with $vloc\n"
         filelist="$vloc"
     fi
 
@@ -295,7 +320,7 @@ function _vctags()
     fi
 
     ccmd="$ccmd $filelist"
-    echo "Using command $ccmd"
+    pr_info "Using command $ccmd\n"
     $ccmd
 
     res=$(which inotifywait)
@@ -319,7 +344,7 @@ function _vcbundle()
     vcactivate
     vdir=$(vcfinddir)
     bname="${VC_DEFUALT_VENV_NAME#.}.pybundle"
-    echo "Creating bundle $bname"
+    pr_info "Creating bundle $bname\n"
     pip bundle "$bname" -r "$vdir/$VC_DEFUALT_VENV_REQFILE"
 } #_vcbundle
 
@@ -329,7 +354,7 @@ function _vcmod()
     _vc_source_project_file
     if [[ -z $1 ]]
     then
-        echo "$0: At least one module name is required."
+        pr_fail "$0: At least one module name is required.\n"
         exit 1
     fi 
 
@@ -339,8 +364,9 @@ function _vcmod()
         then
             touch "$m/__init__.py" 
         else
-            echo "$0: A module named $m already exists."
+            pr_info "$0: A module named $m already exists.\n"
         fi
+        pr_pass "created $m/__init__.py\n"
     done
 } #_vcmod
 
@@ -349,7 +375,7 @@ _vcin()
     _vc_source_project_file
     if [[ -z $1 ]]
     then
-        echo "$0: No parameters given. Running install on requirements.txt"
+        pr_fail "$0: No parameters given. Running install on requirements.txt\n"
         pip install -r "$(_vcfinddir)/requirements.txt"
         vcfreeze
     fi 
@@ -371,7 +397,8 @@ function _vc_auto_activate()
             from="~/${VIRTUAL_ENV#$HOME/}"
             to="~/${c_venv#$HOME/}"
             if [ "$from" != "$to" ]; then
-                echo -e "Switching from '$from' to '$to'"
+                # Do we need to be this verbose?
+                # echo -e "Switching from '$from' to '$to'"
                 deactivate
             fi
         fi
@@ -381,7 +408,7 @@ function _vc_auto_activate()
         fi
     elif [[ ! -z $VIRTUAL_ENV ]]; then
         # We've left an environment, so deactivate.
-        echo "Deactivating ~/${VIRTUAL_ENV#$HOME/}"
+        pr_info "Deactivating ~/${VIRTUAL_ENV#$HOME/}\n"
         deactivate
     fi
 } #_vc_auto_activate
