@@ -125,6 +125,23 @@ function _vcfinddir()
     fi
 } #_vcfinddir
 
+_vc_ignore()
+{
+    # Add a git ignore with python friendly defaults.
+    local igfile="$(vcfinddir)/.gitignore"
+
+    if [[ ! -f $igfile ]]; then
+        echo "$VC_DEFUALT_VENV_NAME" > $igfile
+        echo ".pyo" >> $igfile
+        echo ".pyc" >> $igfile
+        git add $igfile
+    else
+        echo "A .gitignore already exists, doing nothing."
+    fi
+    
+} #_vc_ignore
+
+
 # Start a new virtualenv, or 
 # rebuild on from a requirements.txt file.
 function _vcstart()

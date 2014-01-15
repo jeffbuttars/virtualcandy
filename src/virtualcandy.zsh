@@ -34,6 +34,11 @@ function vcfinddir()
     _vcfinddir
 } #vcfinddir
 
+function vcignore()
+{
+    _vc_ignore
+} #function vcignore
+
 # Start a new virtualenv, or 
 # rebuild on from a requirements.txt file.
 function vcstart()
