@@ -132,8 +132,8 @@ _vc_ignore()
 
     if [[ ! -f $igfile ]]; then
         echo "$VC_DEFUALT_VENV_NAME" > $igfile
-        echo ".pyo" >> $igfile
-        echo ".pyc" >> $igfile
+        echo "*.pyo" >> $igfile
+        echo "*.pyc" >> $igfile
         git add $igfile
     else
         echo "A .gitignore already exists, doing nothing."
