@@ -7,7 +7,9 @@
 # Source in the common code first, override
 # what's necessary
 
-THIS_DIR=$(readlink -f "$(dirname $0)")
+THIS_FILE=$0:A
+THIS_DIR=$(dirname $THIS_FILE)
+
 source "$THIS_DIR/vc_common_code.sh"
 
 
