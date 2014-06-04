@@ -436,7 +436,7 @@ function _vc_reset()
     to="$(vcfindenv $@)"
     dto=$(dirname "$to")
     if [[ -d "$to" ]]; then
-        rm -ifr "$to"
+        rm -fr "$to"
         if [[ "$?" != '0' ]]; then
             exit 1
         fi
