@@ -17,7 +17,11 @@ location doesn't matter much.
 To enable VirtualCandy, you just source it in your ~/.bashrc file. Add the
 following line into your ~/.bashrc file:
 
-    . ~/.virtualcandy/virtualcandy.sh
+    . ~/.virtualcandy/src/virtualcandy.sh
+
+or add the following line to your ~/.zshrc, as appropriate:
+
+    . ~/.virtualcandy/src/virtualcandy.zsh
 
 That's it, VirtualCandy is installed!
 
