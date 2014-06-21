@@ -178,15 +178,19 @@ function _vcstart()
     # Treat any parameters as packages to install.
     # In the case of command line packages given for install
     # we'll also run freeze after word.
-    for pkg in $@ ; do
-        declare -A fail_log
-        pr_info "pip install $pkg\n"
-        eout=$(pip install $pkg 2>&1)
-        res=$?
-        if [[ "0" != "$res" ]]; then
-            fail_log["$pkg"]="$eout"
-        fi
-    done
+    if [[ -n $1 ]]; then
+        for pkg in $@ ; do
+            declare -A fail_log
+            pr_info "pip install $pkg\n"
+            eout=$(pip install $pkg 2>&1)
+            res=$?
+            if [[ "0" != "$res" ]]; then
+                fail_log["$pkg"]="$eout"
+            fi
+        done
+
+        vcfreeze
+    fi
 
     # If there is no requrirements.txt, create one from the
     # current environment.
@@ -306,9 +310,13 @@ function _vcfreeze()
         vd=$(vcfinddir)
     fi
 
+    # make sure virutalenv is activated
     vcactivate
 
-    mv "$vd/$VC_DEFUALT_VENV_REQFILE"  "$vd/.${VC_DEFUALT_VENV_REQFILE}.bak"
+    if [[ -f "$vd/$VC_DEFUALT_VENV_REQFILE" ]]; then
+        mv "$vd/$VC_DEFUALT_VENV_REQFILE"  "$vd/.${VC_DEFUALT_VENV_REQFILE}.bak"
+    fi
+
     pip freeze > "$vd/$VC_DEFUALT_VENV_REQFILE"
     cat  "$vd/$VC_DEFUALT_VENV_REQFILE"
 } #_vcfreeze
