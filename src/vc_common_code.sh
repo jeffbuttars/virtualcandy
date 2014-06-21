@@ -178,13 +178,14 @@ function _vcstart()
     # Treat any parameters as packages to install.
     # In the case of command line packages given for install
     # we'll also run freeze after word.
+    declare -A fail_log
     if [[ -n $1 ]]; then
         for pkg in $@ ; do
-            declare -A fail_log
             pr_info "pip install $pkg\n"
             eout=$(pip install $pkg 2>&1)
-            res=$?
+            res="$?"
             if [[ "0" != "$res" ]]; then
+                pr_fail "pip install $pkg had a failure\n"
                 fail_log["$pkg"]="$eout"
             fi
         done
