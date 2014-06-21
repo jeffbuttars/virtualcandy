@@ -203,8 +203,9 @@ function _vcstart()
     for pkg in $@ ; do
         err_out_file="${pkg}_errs_$$"
         if [[ -f $err_out_file ]]; then
-            pr_fail "An error occurred while installing $k...\n\n"
-            pr_info "$(cat $err_out_file)\n"
+            pr_fail "An error occurred while installing ${pkg}\n"
+            pr_info "See file $err_out_file for details, error contents:\n\n"
+            pr_fail "$(cat $err_out_file)\n"
             echo
         fi
     done
