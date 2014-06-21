@@ -15,9 +15,13 @@ location doesn't matter much.
     cd; git git://github.com/jeffbuttars/virtualcandy.git .virtualcandy 
 
 To enable VirtualCandy, you just source it in your ~/.bashrc file. Add the
-following line into your ~/.bashrc file:  
+following line into your ~/.bashrc file:
 
-    . ~/.virtualcandy/virtualcandy.sh
+    . ~/.virtualcandy/src/virtualcandy.sh
+
+or add the following line to your ~/.zshrc, as appropriate:
+
+    . ~/.virtualcandy/src/virtualcandy.zsh
 
 That's it, VirtualCandy is installed!
 
@@ -25,9 +29,9 @@ That's it, VirtualCandy is installed!
 
 My usage of [Virtualenv](http://www.virtualenv.org/en/latest/index.html) is very similar to how one uses Git or Hg.
 I create one [Virtualenv](http://www.virtualenv.org/en/latest/index.html) environment per project and that [Virtualenv](http://www.virtualenv.org/en/latest/index.html) environment
-is located at the top of the project's directory tree. I also name 
+is located at the top of the project's directory tree. I also name
 all of my [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directories the same name, .venv, and this project
-uses that as the default [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory name. But that is configurable.  
+uses that as the default [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory name. But that is configurable.
 
 Most VirtualCandy functions can be used from anyware within a project using a
 [Virtualenv](http://www.virtualenv.org/en/latest/index.html). VirtualCandy will find the nearest install of [Virtualenv](http://www.virtualenv.org/en/latest/index.html) by traversing
@@ -36,18 +40,24 @@ up the directory tree until one or no [Virtualenv](http://www.virtualenv.org/en/
 ## Configuration
 
 Set the following environemental variables in your ~/.bashrc, before
-you source the virtualcandy.sh file, to configure VirtualCandy settings.  
+you source the virtualcandy.sh file, to configure VirtualCandy settings.
 
-### Naming it: Set the name of your [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory created by and used by VirtualCandy
+### Naming it:
+
+Set the name of your [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory created by and used by VirtualCandy
 
     VC_DEFUALT_VENV_NAME='.venv'
 
 
-### Requirements files: Set the name of the requirements file used by [Pip](http://pypi.python.org/pypi/pip) freeze and VirtualCandy to store your installed package information
+### Requirements files:
+
+Set the name of the requirements file used by [Pip](http://pypi.python.org/pypi/pip) freeze and VirtualCandy to store your installed package information
 
     VC_DEFUALT_VENV_REQFILE='requirements.txt'
 
-### Auto activation(when set to 'true', it's off by default) of a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) when you enter it's containing directory. If you use [Virtualenv](http://www.virtualenv.org/en/latest/index.html) often, this is a very handy option. Example: If you have a directory named ~/Dev1 that has a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) in it. Then upon changing into the ~/Dev1 directory that [Virtualenv](http://www.virtualenv.org/en/latest/index.html) will be activated. If you a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) activated and cd into a directory containing a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) that is different from the currently activated [Virtualenv](http://www.virtualenv.org/en/latest/index.html), then the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html) will be deactivated and the new one will be activated.
+### Auto activation:
+
+The auto activation (when set to 'true', it's off by default) of a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) when you enter it's containing directory. If you use [Virtualenv](http://www.virtualenv.org/en/latest/index.html) often, this is a very handy option. Example: If you have a directory named ~/Dev1 that has a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) in it. Then upon changing into the ~/Dev1 directory that [Virtualenv](http://www.virtualenv.org/en/latest/index.html) will be activated. If you a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) activated and cd into a directory containing a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) that is different from the currently activated [Virtualenv](http://www.virtualenv.org/en/latest/index.html), then the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html) will be deactivated and the new one will be activated.
 
     VC_AUTO_ACTIVATION=false
 
@@ -93,15 +103,15 @@ latest version and then re-write the requirements file to reflect the update.
 
 ### vctags
 
-TODO: Make the inotify watch optional with a command line flag  
-TODO: Make the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) name option a command line flag   
+TODO: Make the inotify watch optional with a command line flag
+TODO: Make the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) name option a command line flag
 
 Runs ctags and creates a tags file in your current working directory. The
 [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory of the current project will be explicitly scanned by ctags
 and included in the tags file. If no parameters are given to `vctags` then the
 current working directory will also be recursively added to the tags file. Any
 parameters given to the `vctags` command will be treated as files and/or
-directories that should be scanned by ctags. 
+directories that should be scanned by ctags.
 
 ### vcbundle
 
@@ -111,31 +121,31 @@ Creates a package bundle containing all of the packages listed in the current [V
 
 If `inotify-utils` is installed, then the `vctags` command will monitor the
 directories/files used to generate the tags from and regenerate the tags file
-every time there is a modification to the watched files.  
+every time there is a modification to the watched files.
 
-`vctags` always runs ctags with the following options:  
+`vctags` always runs ctags with the following options:
     `ctags --sort=yes --tag-relative=no -R --python-kinds=-i $VENV_LOCATION`
 
 Where `$VENV_LOCATION` is the current project's [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory.
 
-If no options are given to `vctags` then the following ctags command is run:  
+If no options are given to `vctags` then the following ctags command is run:
     `ctags --sort=yes --tag-relative=no -R --python-kinds=-i $VENV_LOCATION *`
-Note the additional `*` at the end of the command.  
+Note the additional `*` at the end of the command.
 
-If `vctags` is given parameters, then ctags is run as:  
+If `vctags` is given parameters, then ctags is run as:
     `ctags --sort=yes --tag-relative=no -R --python-kinds=-i $VENV_LOCATION $@`  
 Where `$@` is all of the parameters passed to the `vctags` command.
 
 ### vc\_auto\_activate
 
-Checks the current directory for a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) named VC\_DEFUALT\_VENV\_NAME. If it exists it is activated. This function is put into the PROMPT\_COMMAND variable and executed on every changed of directory.  
+Checks the current directory for a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) named VC\_DEFUALT\_VENV\_NAME. If it exists it is activated. This function is put into the PROMPT\_COMMAND variable and executed on every changed of directory.
 This function is intended for internal use by VirtualCandy iteself, but it is
 available to the user.
 
 ### vcfindenv
 
 This will find and print the full path of the current project's [Virtualenv](http://www.virtualenv.org/en/latest/index.html)
-locatin.  
+location.
 This function is intended for internal use by VirtualCandy iteself, but it is
 available to the user.
 
