@@ -166,8 +166,8 @@ function _vcstart()
     # fi
 
     # Create the virtualenv.
-    pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname\n"
-    $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname
+    pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname\n"
+    $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname
     . $vname/bin/activate
 
     # If there is a requriemnts file, install it's packages.
@@ -180,6 +180,7 @@ function _vcstart()
     # we'll also run freeze after word.
     for pkg in $@ ; do
         declare -A fail_log
+        pr_info "pip install $pkg\n"
         eout=$(pip install $pkg 2>&1)
         res=$?
         if [[ "0" != "$res" ]]; then
