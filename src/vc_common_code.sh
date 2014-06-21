@@ -178,16 +178,15 @@ function _vcstart()
     # Treat any parameters as packages to install.
     # In the case of command line packages given for install
     # we'll also run freeze after word.
-    declare -A fail_log
     if [[ -n $1 ]]; then
         for pkg in $@ ; do
+            err_out_file="${pkg}_errs_$$"
             pr_info "pip install $pkg\n"
             eout=$(pip install $pkg 2>&1)
             res="$?"
             if [[ "0" != "$res" ]]; then
                 pr_fail "pip install $pkg had a failure, $res\n"
-                pr_fail "$eout\n"
-                fail_log["$pkg"]="$eout"
+                echo "$eout" > $err_out_file
             fi
         done
 
@@ -201,10 +200,13 @@ function _vcstart()
     fi
 
     # If we had install errors, display them.
-    for k in "${!fail_log[@]}" ; do
-        pr_fail "An error occurred while installing $k...\n\n"
-        pr_info "${fail_log[$k]}"
-        pr_fail "\n\n"
+    for pkg in $@ ; do
+        err_out_file="${pkg}_errs_$$"
+        if [[ -f $err_out_file ]]; then
+            pr_fail "An error occurred while installing $k...\n\n"
+            pr_info "$(cat $err_out_file)\n"
+            echo
+        fi
     done
 } #_vcstart
 
