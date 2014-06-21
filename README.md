@@ -55,16 +55,21 @@ you source the virtualcandy.sh file, to configure VirtualCandy settings.
 
 ### vcstart
 
-Start a new virtualenv, or rebuild one from a requirements file. This
+Start a new virtualenv, or build one from a requirements file. This
 function only works on your current working directory(all other functions work
-anyware within a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) project). If you run `vcstart` in a
+anywhere within a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) project). If you run `vcstart` in a
 directory without a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) of the name defined by `$VC_DEFUALT_VENV_NAME` ,
 then a new [Virtualenv](http://www.virtualenv.org/en/latest/index.html) will be created. After the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) is created, if a
 requirements file is present, all of the packages listed in the
 requirements file will be installed. If a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) defined by the name
 `$VC_DEFUALT_VENV_NAME` already exists and a requirements file exists then no
-new [Virtualenv](http://www.virtualenv.org/en/latest/index.html) will be created, the packages listed in requirements file will be
+new [Virtualenv](http://www.virtualenv.org/en/latest/index.html) will be created, the packages listed in a present requirements file will be
 installed/updated if necessary.
+
+Any arguments given to the `vcstart` command will be considered package names and
+will be installed after the virtualenv is created. If package parameters are given
+and there is an existing requirements.txt file, the requirements.txt file we be
+updated to include the additional packages.
 
 ### vcactivate
 

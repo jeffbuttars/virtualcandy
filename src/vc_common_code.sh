@@ -158,28 +158,47 @@ function _vcstart()
     fi
 
     vname=$VC_DEFUALT_VENV_NAME
-    if [[ -n $1 ]]; then
-        if [[ "$1" != "-" ]]; then
-            vname="$1"
-        fi
-        shift
-    fi
+    # if [[ -n $1 ]]; then
+    #     if [[ "$1" != "-" ]]; then
+    #         vname="$1"
+    #     fi
+    #     shift
+    # fi
 
+    # Create the virtualenv.
     pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname\n"
     $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname
     . $vname/bin/activate
 
+    # If there is a requriemnts file, install it's packages.
     if [[ -f requirements.txt ]]; then
         pip install -r $VC_DEFUALT_VENV_REQFILE
     fi
 
-    # for pkg in $@ ; do
-    #     pip install $pkg
-    # done
+    # Treat any parameters as packages to install.
+    # In the case of command line packages given for install
+    # we'll also run freeze after word.
+    for pkg in $@ ; do
+        declare -A fail_log
+        eout=$(pip install $pkg 2>&1)
+        res=$?
+        if [[ "0" != "$res" ]]; then
+            fail_log["$pkg"]="$eout"
+        fi
+    done
 
+    # If there is no requrirements.txt, create one from the
+    # current environment.
     if [[ ! -f requirements.txt ]]; then
         vcfreeze
     fi
+
+    # If we had install errors, display them.
+    for k in "${!fail_log[@]}" ; do
+        pr_fail "An error occurred while installing $k...\n\n"
+        pr_info "${fail_log[$k]}"
+        pr_fail "\n\n"
+    done
 } #_vcstart
 
 # A simple, and generic, pip update script.
