@@ -185,7 +185,8 @@ function _vcstart()
             eout=$(pip install $pkg 2>&1)
             res="$?"
             if [[ "0" != "$res" ]]; then
-                pr_fail "pip install $pkg had a failure\n"
+                pr_fail "pip install $pkg had a failure, $res\n"
+                pr_fail "$eout\n"
                 fail_log["$pkg"]="$eout"
             fi
         done
