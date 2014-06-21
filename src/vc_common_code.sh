@@ -180,7 +180,7 @@ function _vcstart()
     # we'll also run freeze after word.
     if [[ -n $1 ]]; then
         for pkg in $@ ; do
-            err_out_file="${pkg}_errs_$$"
+            err_out_file="/tmp/${pkg}_errs_$$"
             pr_info "pip install $pkg\n"
             eout=$(pip install $pkg 2>&1)
             res="$?"
@@ -201,11 +201,11 @@ function _vcstart()
 
     # If we had install errors, display them.
     for pkg in $@ ; do
-        err_out_file="${pkg}_errs_$$"
+        err_out_file="/tmp/${pkg}_errs_$$"
         if [[ -f $err_out_file ]]; then
             pr_fail "An error occurred while installing ${pkg}\n"
             pr_info "See file $err_out_file for details, error contents:\n\n"
-            pr_fail "$(cat $err_out_file)\n"
+            pr_info "$(cat $err_out_file)\n"
             echo
         fi
     done
