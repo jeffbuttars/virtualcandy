@@ -156,9 +156,10 @@ of setting shell variables.
 Example `.vc_proj` file that sets the Python executable to Python3 and sets the name of the
 Virtualenv directory to `.vc_venv`
 
-    ::sh
-    VC_PYTHON_EXE=python3
-    VC_DEFUALT_VENV_NAME='.vc_venv'
+```sh
+VC_PYTHON_EXE=python3
+VC_DEFUALT_VENV_NAME='.vc_venv'
+```
 
 ### Available config variables
 
