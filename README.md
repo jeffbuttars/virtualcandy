@@ -163,11 +163,11 @@ VC_DEFUALT_VENV_NAME='.vc_venv'
 
 ### Available config variables
 
-* `VC\_DEFUALT\_VENV\_NAME` Name of the Virtualenv directory, Default is '.venv'
-* `VC\_DEFUALT\_VENV\_REQFILE` Name of the requirements file, Default is 'requirements.txt'
-* `VC\_AUTO\_ACTIVATION` Enable auto Virtualenv activation, Default is true
-* `VC\_PYTHON\_EXE` Python executable to use for the Virtualenv, Default is $(basename $(which python))
-* `VC\_VIRTUALENV\_EXE` Virtualenv command to use, Default is virtualenv
+* `VC_DEFUALT_VENV_NAME` Name of the Virtualenv directory, Default is '.venv'
+* `VC_DEFUALT_VENV_REQFILE` Name of the requirements file, Default is 'requirements.txt'
+* `VC_AUTO_ACTIVATION` Enable auto Virtualenv activation, Default is true
+* `VC_PYTHON_EXE` Python executable to use for the Virtualenv, Default is $(basename $(which python))
+* `VC_VIRTUALENV_EXE` Virtualenv command to use, Default is virtualenv
 
 A wrapper around `pip install`. All arguments to `vcin` are passed to `pip
 install`. After `pip install` is run `vcfreeze` is run.
