@@ -158,28 +158,57 @@ function _vcstart()
     fi
 
     vname=$VC_DEFUALT_VENV_NAME
-    if [[ -n $1 ]]; then
-        if [[ "$1" != "-" ]]; then
-            vname="$1"
-        fi
-        shift
-    fi
+    # if [[ -n $1 ]]; then
+    #     if [[ "$1" != "-" ]]; then
+    #         vname="$1"
+    #     fi
+    #     shift
+    # fi
 
-    pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname\n"
-    $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $@ $vname
+    # Create the virtualenv.
+    pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname\n"
+    $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname
     . $vname/bin/activate
 
+    # If there is a requriemnts file, install it's packages.
     if [[ -f requirements.txt ]]; then
         pip install -r $VC_DEFUALT_VENV_REQFILE
     fi
 
-    # for pkg in $@ ; do
-    #     pip install $pkg
-    # done
+    # Treat any parameters as packages to install.
+    # In the case of command line packages given for install
+    # we'll also run freeze after word.
+    if [[ -n $1 ]]; then
+        for pkg in $@ ; do
+            err_out_file="/tmp/${pkg}_errs_$$"
+            pr_info "pip install $pkg\n"
+            eout=$(pip install $pkg 2>&1)
+            res="$?"
+            if [[ "0" != "$res" ]]; then
+                pr_fail "pip install $pkg had a failure, $res\n"
+                echo "$eout" > $err_out_file
+            fi
+        done
 
+        vcfreeze
+    fi
+
+    # If there is no requrirements.txt, create one from the
+    # current environment.
     if [[ ! -f requirements.txt ]]; then
         vcfreeze
     fi
+
+    # If we had install errors, display them.
+    for pkg in $@ ; do
+        err_out_file="/tmp/${pkg}_errs_$$"
+        if [[ -f $err_out_file ]]; then
+            pr_fail "An error occurred while installing ${pkg}\n"
+            pr_info "See file $err_out_file for details, error contents:\n\n"
+            pr_info "$(cat $err_out_file)\n"
+            echo
+        fi
+    done
 } #_vcstart
 
 # A simple, and generic, pip update script.
@@ -286,9 +315,13 @@ function _vcfreeze()
         vd=$(vcfinddir)
     fi
 
+    # make sure virutalenv is activated
     vcactivate
 
-    mv "$vd/$VC_DEFUALT_VENV_REQFILE"  "$vd/.${VC_DEFUALT_VENV_REQFILE}.bak"
+    if [[ -f "$vd/$VC_DEFUALT_VENV_REQFILE" ]]; then
+        mv "$vd/$VC_DEFUALT_VENV_REQFILE"  "$vd/.${VC_DEFUALT_VENV_REQFILE}.bak"
+    fi
+
     pip freeze > "$vd/$VC_DEFUALT_VENV_REQFILE"
     cat  "$vd/$VC_DEFUALT_VENV_REQFILE"
 } #_vcfreeze
@@ -436,7 +469,7 @@ function _vc_reset()
     to="$(vcfindenv $@)"
     dto=$(dirname "$to")
     if [[ -d "$to" ]]; then
-        rm -ifr "$to"
+        rm -fr "$to"
         if [[ "$?" != '0' ]]; then
             exit 1
         fi
