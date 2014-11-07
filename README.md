@@ -21,7 +21,7 @@ following line into your ~/.bashrc file:
 
 or add the following line to your ~/.zshrc, as appropriate:
 
-    . ~/.virtualcandy/src/virtualcandy.zsh
+    source ~/.virtualcandy/src/virtualcandy.zsh
 
 That's it, VirtualCandy is installed!
 
