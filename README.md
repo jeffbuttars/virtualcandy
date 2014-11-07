@@ -1,7 +1,7 @@
 virtualcandy
 ============
 
-### My Own Bash Wrapper Functions for [Python's](http://www.python.org/) [Virtualenv](http://www.virtualenv.org/en/latest/index.html)  
+### Smarter Shell Integration for [Python's](http://www.python.org/) [Virtualenv](http://www.virtualenv.org/en/latest/index.html)  
 
 This not an attempt to create another, or even better, set of wrapper functions
 for [Virtualenv](http://www.virtualenv.org/en/latest/index.html). This is a set of wrappers that I've built, like, and use
