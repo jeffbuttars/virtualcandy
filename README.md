@@ -117,25 +117,6 @@ directories that should be scanned by ctags.
 
 Creates a package bundle containing all of the packages listed in the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html)'s VC\_DEFUALT\_VENV\_REQFILE file. The name of the bundle output will be 'VC\_DEFUALT\_VENV\_NAME.pybundle', but with any leading '.' stripped from the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) name. For instance, if VC\_DEFUALT\_VENV\_NAME is '.myenv' the bundle will be named 'myenv.pybundle'.
 
-#### File Watching
-
-If `inotify-utils` is installed, then the `vctags` command will monitor the
-directories/files used to generate the tags from and regenerate the tags file
-every time there is a modification to the watched files.
-
-`vctags` always runs ctags with the following options:
-    `ctags --sort=yes --tag-relative=no -R --python-kinds=-i $VENV_LOCATION`
-
-Where `$VENV_LOCATION` is the current project's [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory.
-
-If no options are given to `vctags` then the following ctags command is run:
-    `ctags --sort=yes --tag-relative=no -R --python-kinds=-i $VENV_LOCATION *`
-Note the additional `*` at the end of the command.
-
-If `vctags` is given parameters, then ctags is run as:
-    `ctags --sort=yes --tag-relative=no -R --python-kinds=-i $VENV_LOCATION $@`  
-Where `$@` is all of the parameters passed to the `vctags` command.
-
 ### vc\_auto\_activate
 
 Checks the current directory for a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) named VC\_DEFUALT\_VENV\_NAME. If it exists it is activated. This function is put into the PROMPT\_COMMAND variable and executed on every changed of directory.
@@ -164,6 +145,29 @@ available to the user.
 
 
 ### vcin
+
+## Per project settings via `.vc_proj` file
+
+You can use per project Virtualcandy settings by adding a file named `.vc_proj` in
+the same directory as your `requirements.txt` file. The `.vc_proj` file will be sourced
+every time a Virtualcandy command is used. Settings in the `.vc_proj` file is a simple matter
+of setting shell variables.
+
+Example `.vc_proj` file that sets the Python executable to Python3 and sets the name of the
+Virtualenv directory to `.vc_venv`
+
+```sh
+VC_PYTHON_EXE=python3
+VC_DEFUALT_VENV_NAME='.vc_venv'
+```
+
+### Available config variables
+
+* `VC_DEFUALT_VENV_NAME` Name of the Virtualenv directory, Default is '.venv'
+* `VC_DEFUALT_VENV_REQFILE` Name of the requirements file, Default is 'requirements.txt'
+* `VC_AUTO_ACTIVATION` Enable auto Virtualenv activation, Default is true
+* `VC_PYTHON_EXE` Python executable to use for the Virtualenv, Default is $(basename $(which python))
+* `VC_VIRTUALENV_EXE` Virtualenv command to use, Default is virtualenv
 
 A wrapper around `pip install`. All arguments to `vcin` are passed to `pip
 install`. After `pip install` is run `vcfreeze` is run.
