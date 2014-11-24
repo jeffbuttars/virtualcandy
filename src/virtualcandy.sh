@@ -43,7 +43,7 @@ _vcstart
 # For a given file containing a pkg lising
 # all packages are updated. If no args are given,
 # then a 'requirements.txt' file will be looked
-# for in the current directory. If the $VC_DEFUALT_VENV_REQFILE
+# for in the current directory. If the $VC_DEFAULT_VENV_REQFILE
 # variable is set, than that filename will be looked
 # for in the current directory.
 # If an argument is passed to the function, then
@@ -89,15 +89,25 @@ function vcbundle()
     _vcbundle $@
 } #vcbundle
 
+function vcmod()
+{
+    _vcmod $@
+} #vcmod
+
 function vc_auto_activate()
 {
     _vc_auto_activate $@
 } #vc_auto_activate
 
-vcin()
+function vcin()
 {
     _vcin $@
 } #vcin
+
+function vcreset()
+{
+    _vc_reset $@
+} #vcreset
 
 # Automatically activate the current directories
 # Virtualenv is one exists

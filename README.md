@@ -46,14 +46,14 @@ you source the virtualcandy.sh file, to configure VirtualCandy settings.
 
 Set the name of your [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory created by and used by VirtualCandy
 
-    VC_DEFUALT_VENV_NAME='.venv'
+    VC_DEFAULT_VENV_NAME='.venv'
 
 
 ### Requirements files:
 
 Set the name of the requirements file used by [Pip](http://pypi.python.org/pypi/pip) freeze and VirtualCandy to store your installed package information
 
-    VC_DEFUALT_VENV_REQFILE='requirements.txt'
+    VC_DEFAULT_VENV_REQFILE='requirements.txt'
 
 ### Auto activation:
 
@@ -68,11 +68,11 @@ The auto activation (when set to 'true', it's off by default) of a [Virtualenv](
 Start a new virtualenv, or build one from a requirements file. This
 function only works on your current working directory(all other functions work
 anywhere within a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) project). If you run `vcstart` in a
-directory without a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) of the name defined by `$VC_DEFUALT_VENV_NAME` ,
+directory without a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) of the name defined by `$VC_DEFAULT_VENV_NAME` ,
 then a new [Virtualenv](http://www.virtualenv.org/en/latest/index.html) will be created. After the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) is created, if a
 requirements file is present, all of the packages listed in the
 requirements file will be installed. If a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) defined by the name
-`$VC_DEFUALT_VENV_NAME` already exists and a requirements file exists then no
+`$VC_DEFAULT_VENV_NAME` already exists and a requirements file exists then no
 new [Virtualenv](http://www.virtualenv.org/en/latest/index.html) will be created, the packages listed in a present requirements file will be
 installed/updated if necessary.
 
@@ -93,7 +93,7 @@ requirements file contents are the result of the `pip freeze` command. The
 requirements file is written in the same directory that contains the
 [Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory, even if the command is ran in a subdirectory.
 If you don't want to name the output file to be `requirements.txt`, you can
-change the name of the output file with the `$VC_DEFUALT_VENV_REQFILE`
+change the name of the output file with the `$VC_DEFAULT_VENV_REQFILE`
 environemental variable.
 
 ### vcpkgup
@@ -115,11 +115,11 @@ directories that should be scanned by ctags.
 
 ### vcbundle
 
-Creates a package bundle containing all of the packages listed in the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html)'s VC\_DEFUALT\_VENV\_REQFILE file. The name of the bundle output will be 'VC\_DEFUALT\_VENV\_NAME.pybundle', but with any leading '.' stripped from the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) name. For instance, if VC\_DEFUALT\_VENV\_NAME is '.myenv' the bundle will be named 'myenv.pybundle'.
+Creates a package bundle containing all of the packages listed in the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html)'s VC\_DEFAULT\_VENV\_REQFILE file. The name of the bundle output will be 'VC\_DEFAULT\_VENV\_NAME.pybundle', but with any leading '.' stripped from the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) name. For instance, if VC\_DEFAULT\_VENV\_NAME is '.myenv' the bundle will be named 'myenv.pybundle'.
 
 ### vc\_auto\_activate
 
-Checks the current directory for a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) named VC\_DEFUALT\_VENV\_NAME. If it exists it is activated. This function is put into the PROMPT\_COMMAND variable and executed on every changed of directory.
+Checks the current directory for a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) named VC\_DEFAULT\_VENV\_NAME. If it exists it is activated. This function is put into the PROMPT\_COMMAND variable and executed on every changed of directory.
 This function is intended for internal use by VirtualCandy iteself, but it is
 available to the user.
 
@@ -133,7 +133,7 @@ available to the user.
 ### vcfinddir
 
 This is used to find the nearest directory containing the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) named by
-the `$VC_DEFUALT_VENV_NAME` bash variable. For instance you have [Virtualenv](http://www.virtualenv.org/en/latest/index.html)
+the `$VC_DEFAULT_VENV_NAME` bash variable. For instance you have [Virtualenv](http://www.virtualenv.org/en/latest/index.html)
 located at:
     `/home/user/project`
 and you run vcfinddir from the directory:
@@ -158,13 +158,13 @@ Virtualenv directory to `.vc_venv`
 
 ```sh
 VC_PYTHON_EXE=python3
-VC_DEFUALT_VENV_NAME='.vc_venv'
+VC_DEFAULT_VENV_NAME='.vc_venv'
 ```
 
 ### Available config variables
 
-* `VC_DEFUALT_VENV_NAME` Name of the Virtualenv directory, Default is '.venv'
-* `VC_DEFUALT_VENV_REQFILE` Name of the requirements file, Default is 'requirements.txt'
+* `VC_DEFAULT_VENV_NAME` Name of the Virtualenv directory, Default is '.venv'
+* `VC_DEFAULT_VENV_REQFILE` Name of the requirements file, Default is 'requirements.txt'
 * `VC_AUTO_ACTIVATION` Enable auto Virtualenv activation, Default is true
 * `VC_PYTHON_EXE` Python executable to use for the Virtualenv, Default is $(basename $(which python))
 * `VC_VIRTUALENV_EXE` Virtualenv command to use, Default is virtualenv

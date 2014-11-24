@@ -52,7 +52,7 @@ function vcstart()
 # For a given file containing a pkg lising
 # all packages are updated. If no args are given,
 # then a 'requirements.txt' file will be looked
-# for in the current directory. If the $VC_DEFUALT_VENV_REQFILE
+# for in the current directory. If the $VC_DEFAULT_VENV_REQFILE
 # variable is set, than that filename will be looked
 # for in the current directory.
 # If an argument is passed to the function, then

@@ -37,14 +37,14 @@ pr_info()
 
 VC_PROJECT_FILE=".vc_proj"
 
-if [[ -z $VC_DEFUALT_VENV_NAME ]]
+if [[ -z $VC_DEFAULT_VENV_NAME ]]
 then
-    VC_DEFUALT_VENV_NAME='.venv'
+    VC_DEFAULT_VENV_NAME='.venv'
 fi
 
-if [[ -z $VC_DEFUALT_VENV_REQFILE ]]
+if [[ -z $VC_DEFAULT_VENV_REQFILE ]]
 then
-    VC_DEFUALT_VENV_REQFILE='requirements.txt'
+    VC_DEFAULT_VENV_REQFILE='requirements.txt'
 fi
 
 if [[ -z $VC_AUTO_ACTIVATION ]]
@@ -99,7 +99,7 @@ function _vcfinddir()
 {
     _vc_source_project_file
     cur=$PWD
-    vname=$VC_DEFUALT_VENV_NAME
+    vname=$VC_DEFAULT_VENV_NAME
     found='false'
 
     if [[ -n $1 ]]; then
@@ -131,7 +131,7 @@ _vc_ignore()
     local igfile="$(vcfinddir)/.gitignore"
 
     if [[ ! -f $igfile ]]; then
-        echo "$VC_DEFUALT_VENV_NAME" > $igfile
+        echo "$VC_DEFAULT_VENV_NAME" > $igfile
         echo "*.pyo" >> $igfile
         echo "*.pyc" >> $igfile
         git add $igfile
@@ -157,7 +157,7 @@ function _vcstart()
         $C_SHELL -c "$THIS_DIR/vc_new_shell.sh"
     fi
 
-    vname=$VC_DEFUALT_VENV_NAME
+    vname=$VC_DEFAULT_VENV_NAME
     # if [[ -n $1 ]]; then
     #     if [[ "$1" != "-" ]]; then
     #         vname="$1"
@@ -172,7 +172,7 @@ function _vcstart()
 
     # If there is a requriemnts file, install it's packages.
     if [[ -f requirements.txt ]]; then
-        pip install -r $VC_DEFUALT_VENV_REQFILE
+        pip install -r $VC_DEFAULT_VENV_REQFILE
     fi
 
     # Treat any parameters as packages to install.
@@ -215,7 +215,7 @@ function _vcstart()
 # For a given file containing a pkg lising
 # all packages are updated. If no args are given,
 # then a 'requirements.txt' file will be looked
-# for in the current directory. If the $VC_DEFUALT_VENV_REQFILE
+# for in the current directory. If the $VC_DEFAULT_VENV_REQFILE
 # variable is set, than that filename will be looked
 # for in the current directory.
 # If an argument is passed to the function, then
@@ -226,8 +226,8 @@ function _pip_update()
     _vc_source_project_file
     reqf="requirements.txt"
 
-    if [[ -n $VC_DEFUALT_VENV_REQFILE ]]; then
-        reqf="$VC_DEFUALT_VENV_REQFILE"
+    if [[ -n $VC_DEFAULT_VENV_REQFILE ]]; then
+        reqf="$VC_DEFAULT_VENV_REQFILE"
     fi
 
     if [[ -n $1 ]]; then
@@ -255,11 +255,11 @@ function _pip_update()
 function _vcpkgup()
 {
     _vc_source_project_file
-    local vname=$VC_DEFUALT_VENV_NAME
+    local vname=$VC_DEFAULT_VENV_NAME
 
     vdir=$(vcfinddir $vname)
 
-    reqlist="$vdir/$VC_DEFUALT_VENV_REQFILE"
+    reqlist="$vdir/$VC_DEFAULT_VENV_REQFILE"
 
     if [ ! -z $1 ]; then
         pr_info "Updating $@\n"
@@ -290,7 +290,7 @@ function _vcfindenv()
 {
     _vc_source_project_file
     cur=$PWD
-    local vname=$VC_DEFUALT_VENV_NAME
+    local vname=$VC_DEFAULT_VENV_NAME
 
     if [[ -n $1 ]]; then
         vname="$1"
@@ -318,19 +318,19 @@ function _vcfreeze()
     # make sure virutalenv is activated
     vcactivate
 
-    if [[ -f "$vd/$VC_DEFUALT_VENV_REQFILE" ]]; then
-        mv "$vd/$VC_DEFUALT_VENV_REQFILE"  "$vd/.${VC_DEFUALT_VENV_REQFILE}.bak"
+    if [[ -f "$vd/$VC_DEFAULT_VENV_REQFILE" ]]; then
+        mv "$vd/$VC_DEFAULT_VENV_REQFILE"  "$vd/.${VC_DEFAULT_VENV_REQFILE}.bak"
     fi
 
-    pip freeze > "$vd/$VC_DEFUALT_VENV_REQFILE"
-    cat  "$vd/$VC_DEFUALT_VENV_REQFILE"
+    pip freeze > "$vd/$VC_DEFAULT_VENV_REQFILE"
+    cat  "$vd/$VC_DEFAULT_VENV_REQFILE"
 } #_vcfreeze
 
 function _vcactivate()
 {
     _vc_source_project_file
     
-    local vname=$VC_DEFUALT_VENV_NAME
+    local vname=$VC_DEFAULT_VENV_NAME
     vloc=''
 
     if [[ -n $1 ]]; then
@@ -393,9 +393,9 @@ function _vcbundle()
     _vc_source_project_file
     vcactivate
     vdir=$(vcfinddir)
-    bname="${VC_DEFUALT_VENV_NAME#.}.pybundle"
+    bname="${VC_DEFAULT_VENV_NAME#.}.pybundle"
     pr_info "Creating bundle $bname\n"
-    pip bundle "$bname" -r "$vdir/$VC_DEFUALT_VENV_REQFILE"
+    pip bundle "$bname" -r "$vdir/$VC_DEFAULT_VENV_REQFILE"
 } #_vcbundle
 
 
