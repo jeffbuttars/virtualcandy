@@ -109,6 +109,11 @@ function vcreset()
     _vc_reset $@
 } #vcreset
 
+function vcpkgskel()
+{
+    _vc_pkgskel $@
+} #vcpkgskel
+
 # Automatically activate the current directories
 # Virtualenv is one exists
 if [[ "$VC_AUTO_ACTIVATION" == "true" ]]; then

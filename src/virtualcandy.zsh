@@ -152,6 +152,11 @@ function vcreset()
     _vc_reset $@
 } #vcreset
 
+function vcpkgskel()
+{
+    _vc_pkgskel $@
+} #function vcpkgskel
+
 # chpwd_functions=(${chpwd_functions[@]} "vc_auto_activate")
 # Automatically activate the current directories
 # Virtualenv is one exists

@@ -479,3 +479,63 @@ function _vc_reset()
     fi
 
 } #_vc_reset
+
+function _vc_pkgskel()
+{
+    if [[ -z $1 ]]; then
+        pr_fail "a package name is required"
+        pr_fail "vcpkgskel <package-name>"
+    fi
+
+    local pkg_name="$1"
+
+    if [[ -d "$pkg_name" ]]; then
+        pr_fail "A directory named $pkg_name already exists.\n"
+        pr_fail "Not building package skeleton for $pkg_name.\n"
+        exit 1
+    fi
+
+    local pkg_name_u=$(echo "$pkg_name" | sed -e 's/-/_/g') # underscored
+    local pkg_name_s="$(echo $pkg_name_u | sed -e 's/_/ /g')" # spaces
+    local pkg_name_title="$(echo $pkg_name_s | sed -e 's/\b\(.\)/\u\1/g')" # titled
+
+    mkdir -p $pkg_name
+    touch $pkg_name/LICENSE.txt
+    touch $pkg_name/requirements.txt
+    echo "# $pkg_name_title\n" > $pkg_name/README.md
+    mkdir -p $pkg_name/$pkg_name_u
+    touch $pkg_name/$pkg_name_u/__init__.py
+
+    cat << EOF > "$pkg_name/setup.py"
+#!/usr/bin/env python
+
+
+from setuptools import setup, find_packages
+
+
+setup(
+    name="$pkg_name",
+    version="0.1.0",
+    packages=find_packages(),
+    author="$USER",
+    author_email="$USER@example.com",
+    description="$pkg_name_title description",
+    # license="Apache",
+    url="https://github.com/jeffbuttars/virtualcandy",
+
+    long_description=open('README.md').read(),
+
+    # classifiers=[
+    #     'License :: OSI Approved :: Apache Software License',
+    #     'Operating System :: POSIX',
+    #     'Programming Language :: Python',
+    #     'Programming Language :: Python :: 2.6',
+    #     'Programming Language :: Python :: 2.7',
+    #     'Topic :: Internet',
+    # ],
+
+    # install_requires=['']
+)
+EOF
+
+} #function _vc_pkgskel

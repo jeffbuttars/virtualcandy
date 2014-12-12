@@ -101,6 +101,24 @@ environemental variable.
 This will upgrade all of the packages listed in the requirements file to their
 latest version and then re-write the requirements file to reflect the update.
 
+### vcpkgskel
+
+Create a Python package skeleton of the specified name.
+
+    vcpkgskel <package-name>
+
+Will create a folder structure:
+
+    <package-name>
+      LICENSE.txt
+      README.md
+      requirements.txt
+      setup.py
+      \
+       <package_name> (directory for package sources)
+
+The `README.md` and `setup.py` will include boilerplate.
+
 ### vctags
 
 TODO: Make the inotify watch optional with a command line flag
