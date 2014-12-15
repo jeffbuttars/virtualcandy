@@ -502,20 +502,35 @@ function _vc_pkgskel()
     mkdir -p $pkg_name
     touch $pkg_name/LICENSE.txt
     touch $pkg_name/requirements.txt
-    echo "# $pkg_name_title\n" > $pkg_name/README.md
+    echo "# $pkg_name_title\n" > $pkg_name/README.rst
+    echo "include LICENSE.txt\ninclude README.rst" > $pkg_name/MANIFEST.in
     mkdir -p $pkg_name/$pkg_name_u
-    touch $pkg_name/$pkg_name_u/__init__.py
 
+    # Add an __init__.py with version vars
+    cat << EOF > "$pkg_name/$pkg_name_u/__init__.py"
+# version is a human-readable version number.
+
+# http://legacy.python.org/dev/peps/pep-0440/#version-scheme
+# Use the pep-0440 as a versioning guidline
+# There are always four parts, although trailing parts 'may' be empty.
+# Idealy the first 3 parts will always have a value
+__version__ = "0.1.0.dev1"
+__version_info__ = ('0', '1', '0', 'dev1')
+EOF
+
+    # Add an initial setup.py
     cat << EOF > "$pkg_name/setup.py"
 #!/usr/bin/env python
 
 
 from setuptools import setup, find_packages
 
+import $pkg_name_u
+
 
 setup(
     name="$pkg_name",
-    version="0.1.0",
+    version=${pkg_name_u}.__version__,
     packages=find_packages(),
     author="$USER",
     author_email="$USER@example.com",
@@ -523,7 +538,7 @@ setup(
     # license="Apache",
     url="https://github.com/jeffbuttars/virtualcandy",
 
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
 
     # classifiers=[
     #     'License :: OSI Approved :: Apache Software License',
