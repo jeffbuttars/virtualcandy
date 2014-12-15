@@ -111,13 +111,19 @@ Will create a folder structure:
 
     <package-name>
       LICENSE.txt
-      README.md
+      MANIFEST.in
+      README.rst
       requirements.txt
       setup.py
       \
        <package_name> (directory for package sources)
+         __init__.py
 
-The `README.md` and `setup.py` will include boilerplate.
+The `README.md` and `setup.py` will include boilerplate. Also the `__init__.py`
+includes default version variables:
+
+    __version__ = "0.1.0.dev1"
+    __version_info__ = (0, 1, 0, 'dev1')
 
 ### vctags
 
