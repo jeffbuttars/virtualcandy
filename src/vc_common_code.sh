@@ -503,11 +503,14 @@ function _vc_pkgskel()
     local pkg_name_title="$(echo $pkg_name_s | sed -e 's/\b\(.\)/\u\1/g')" # titled
 
     mkdir -p $pkg_name
+    mkdir -p $pkg_name/tests
+    mkdir -p $pkg_name/$pkg_name_u
     touch $pkg_name/LICENSE.txt
     touch $pkg_name/requirements.txt
+
+    # Create some boilerplate
     echo "# $pkg_name_title\n" > $pkg_name/README.rst
     echo "include LICENSE.txt\ninclude README.rst" > $pkg_name/MANIFEST.in
-    mkdir -p $pkg_name/$pkg_name_u
 
     # Add an __init__.py with version vars
     tmp_out=$(. "${TMPL_DIR}/pkg_init.tmpl.sh")
@@ -517,4 +520,8 @@ function _vc_pkgskel()
     tmp_out=$(. "${TMPL_DIR}/pkg_setup.tmpl.sh")
     echo $tmp_out > "$pkg_name/setup.py"
 
-} #function _vc_pkgskel
+    # Add a Makefile
+    tmp_out=$(. "${TMPL_DIR}/pkg_makefile.tmpl.sh")
+    echo $tmp_out > "$pkg_name/Makefile"
+
+} # _vc_pkgskel

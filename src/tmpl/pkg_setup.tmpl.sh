@@ -2,9 +2,20 @@ cat << __EOF__
 #!/usr/bin/env python
 
 
+import os
+from pip.req import parse_requirements
 from setuptools import setup, find_packages
 
 import $pkg_name_u
+
+
+def get_requires(rname='requirements.txt'):
+    this_dir = os.path.realpath(os.path.dirname(__file__))
+    fname = os.path.join(this_dir, rname)
+    reqs = parse_requirements(fname)
+    res = [str(ir.req) for ir in reqs]
+
+    return res
 
 
 setup(
@@ -28,6 +39,6 @@ setup(
     #     'Topic :: Internet',
     # ],
 
-    # install_requires=['']
+    install_requires=get_requires() + []
 )
 __EOF__
