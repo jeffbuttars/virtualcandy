@@ -13,6 +13,9 @@ KBLU="\033[0;34m"
 # KCYN="\x1B[36m"
 # KWHT="\x1B[37m"
 
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+TMPL_DIR="${THIS_DIR}/tmpl"
+
 pr_pass()
 {
     # echo "$1"
@@ -507,50 +510,11 @@ function _vc_pkgskel()
     mkdir -p $pkg_name/$pkg_name_u
 
     # Add an __init__.py with version vars
-    cat << EOF > "$pkg_name/$pkg_name_u/__init__.py"
-# version is a human-readable version number.
-
-# http://legacy.python.org/dev/peps/pep-0440/#version-scheme
-# Use the pep-0440 as a versioning guidline
-# There are always four parts, although trailing parts 'may' be empty.
-# Idealy the first 3 parts will always have a value
-__version__ = "0.1.0.dev1"
-__version_info__ = ('0', '1', '0', 'dev1')
-EOF
+    tmp_out=$(. "${TMPL_DIR}/pkg_init.tmpl.sh")
+    echo $tmp_out > "$pkg_name/$pkg_name_u/__init__.py"
 
     # Add an initial setup.py
-    cat << EOF > "$pkg_name/setup.py"
-#!/usr/bin/env python
-
-
-from setuptools import setup, find_packages
-
-import $pkg_name_u
-
-
-setup(
-    name="$pkg_name",
-    version=${pkg_name_u}.__version__,
-    packages=find_packages(),
-    author="$USER",
-    author_email="$USER@example.com",
-    description="$pkg_name_title description",
-    # license="Apache",
-    url="https://github.com/jeffbuttars/virtualcandy",
-
-    long_description=open('README.rst').read(),
-
-    # classifiers=[
-    #     'License :: OSI Approved :: Apache Software License',
-    #     'Operating System :: POSIX',
-    #     'Programming Language :: Python',
-    #     'Programming Language :: Python :: 2.6',
-    #     'Programming Language :: Python :: 2.7',
-    #     'Topic :: Internet',
-    # ],
-
-    # install_requires=['']
-)
-EOF
+    tmp_out=$(. "${TMPL_DIR}/pkg_setup.tmpl.sh")
+    echo $tmp_out > "$pkg_name/setup.py"
 
 } #function _vc_pkgskel
