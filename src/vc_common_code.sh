@@ -73,7 +73,7 @@ then
 
     # If we think we're using python2, try to use virtualenv2 if
     # it's available
-    $VC_PYTHON_EXE --version 2>&1 | awk '{print $2}' | grep -e '^2.*$'
+    $VC_PYTHON_EXE --version 2>&1 | awk '{print $2}' | grep -e '^2*$'
     res="$?"
     if [[ "$res" == "0" ]]; then
         which virtualenv2 > /dev/null 2>&1
