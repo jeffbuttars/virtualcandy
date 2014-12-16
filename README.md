@@ -103,7 +103,8 @@ latest version and then re-write the requirements file to reflect the update.
 
 ### vcpkgskel
 
-Create a Python package skeleton of the specified name.
+Create a Python package skeleton of the specified name. This includes some
+boilerplate code for `Makefile`, `setup.py` and `pkg_name.__init__.py`
 
     vcpkgskel <package-name>
 
@@ -113,6 +114,7 @@ Will create a folder structure:
       LICENSE.txt
       MANIFEST.in
       README.rst
+      Makefile
       requirements.txt
       setup.py
       \
