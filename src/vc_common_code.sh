@@ -13,7 +13,7 @@ KBLU="\033[0;34m"
 # KCYN="\x1B[36m"
 # KWHT="\x1B[37m"
 
-THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+THIS_DIR="$(dirname $0)"
 TMPL_DIR="${THIS_DIR}/tmpl"
 
 pr_pass()
