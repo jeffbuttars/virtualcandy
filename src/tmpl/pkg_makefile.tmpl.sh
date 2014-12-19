@@ -14,7 +14,7 @@ test:
 	@echo "Write some tests YO!"
 
 cheese: clean test dist
-    python ./setup.py sdist upload
+	python ./setup.py sdist upload
 
 clean:
 	rm -fr dist
