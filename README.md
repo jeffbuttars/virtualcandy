@@ -7,8 +7,8 @@ This not an attempt to create another, or even better, set of wrapper functions
 for [Virtualenv](http://www.virtualenv.org/en/latest/index.html). This is a set of wrappers that I've built, like, and use
 everyday.
 
-* [Installation][]
-* [Philosophy of Virtualenv][]
+* [Installation](#Installation)
+* [Philosophy of Virtualenv](#Philosophy-of-Virtualenv)
 * [Configuration][]
 * [Functions][]
 
