@@ -1,13 +1,18 @@
 virtualcandy
 ============
 
-### Smarter Shell Integration for [Python's](http://www.python.org/) [Virtualenv](http://www.virtualenv.org/en/latest/index.html)  
+## Smarter Shell Integration for [Python's](http://www.python.org/) [Virtualenv](http://www.virtualenv.org/en/latest/index.html)  
 
 This not an attempt to create another, or even better, set of wrapper functions
 for [Virtualenv](http://www.virtualenv.org/en/latest/index.html). This is a set of wrappers that I've built, like, and use
 everyday.
 
-## Installation
+* [Installation][]
+* [Philosophy of Virtualenv][]
+* [Configuration][]
+* [Functions][]
+
+# Installation
 
 Just clone the repo. I use a ~/.virtualcandy directory to hold the code, but the
 location doesn't matter much.
@@ -25,7 +30,7 @@ or add the following line to your ~/.zshrc, as appropriate:
 
 That's it, VirtualCandy is installed!
 
-## Philosophy of [Virtualenv](http://www.virtualenv.org/en/latest/index.html) usage
+## Philosophy of Virtualenv
 
 My usage of [Virtualenv](http://www.virtualenv.org/en/latest/index.html) is very similar to how one uses Git or Hg.
 I create one [Virtualenv](http://www.virtualenv.org/en/latest/index.html) environment per project and that [Virtualenv](http://www.virtualenv.org/en/latest/index.html) environment
@@ -61,7 +66,7 @@ The auto activation (when set to 'true', it's off by default) of a [Virtualenv](
 
     VC_AUTO_ACTIVATION=false
 
-## Function Overview
+## Functions
 
 ### vcstart
 
