@@ -144,7 +144,7 @@ directories that should be scanned by ctags.
 Creates a package bundle containing all of the packages listed in the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html)'s VC\_DEFAULT\_VENV\_REQFILE file. The name of the bundle output will be 'VC\_DEFAULT\_VENV\_NAME.pybundle', but with any leading '.' stripped from the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) name. For instance, if VC\_DEFAULT\_VENV\_NAME is '.myenv' the bundle will be named 'myenv.pybundle'.
 
 ### vcclean
-Recursively clean files matching a set of patterns. 
+Recursively clean files matching a set of patterns.  
 **Be careful using this. It's very convenient and very destructive**  
 By default the file patterns `*.pyc` and `*.pyo` will be matched by default and
 without question. You can add additional patterns as parameters:
