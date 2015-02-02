@@ -10,7 +10,7 @@ everyday.
 * [Installation](#installation)
 * [Philosophy of Virtualenv](#philosophy-of-virtualenv)
 * [Configuration](#configuration)
-* [Functions](functions)
+* [Functions](#functions)
     * [vcstart](#vcstart)
     * [vcactivate](#vcactivate)
     * [vcin](#vcin)
