@@ -7,10 +7,23 @@ This not an attempt to create another, or even better, set of wrapper functions
 for [Virtualenv](http://www.virtualenv.org/en/latest/index.html). This is a set of wrappers that I've built, like, and use
 everyday.
 
-* [Installation](#Installation)
-* [Philosophy of Virtualenv](#Philosophy-of-Virtualenv)
-* [Configuration][]
-* [Functions][]
+* [Installation](#installation)
+* [Philosophy of Virtualenv](#philosophy-of-virtualenv)
+* [Configuration](#configuration)
+* [Functions](functions)
+    * [vcstart](#vcstart)
+    * [vcactivate](#vcactivate)
+    * [vcin](#vcin)
+    * [vcpkgup](#vcpkgup)
+    * [vcpkgskel](#vcpkgskel)
+    * [vctags](#vctags)
+    * [vcfreeze](#vcfreeze)
+    * [vcbundle](#vcbundle)
+    * [vcclean](#vcclean)
+    * [vc_auto_activate](#vc_auto_activate)
+    * [vcfindenv](#vcfindenv)
+    * [vcfinddir](#vcfinddir)
+
 
 # Installation
 
@@ -91,15 +104,17 @@ updated to include the additional packages.
 `vcactivate` will activate the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) of the current project. `vcactivate` finds
 the current project by using the `vcfindenv` command.
 
-### vcfreeze
+### vcin
+Install a package into the current
+[Virtualenv](http://www.virtualenv.org/en/latest/index.html)
+and update the requirements file. 
 
-Write a new requirements file for the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html). The
-requirements file contents are the result of the `pip freeze` command. The
-requirements file is written in the same directory that contains the
-[Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory, even if the command is ran in a subdirectory.
-If you don't want to name the output file to be `requirements.txt`, you can
-change the name of the output file with the `$VC_DEFAULT_VENV_REQFILE`
-environemental variable.
+Ex:
+
+    # install the latest versions of Django and djnagorestframework
+    # and update the requirements file
+    vcin Django djnagorestframework
+
 
 ### vcpkgup
 
@@ -143,6 +158,16 @@ and included in the tags file. If no parameters are given to `vctags` then the
 current working directory will also be recursively added to the tags file. Any
 parameters given to the `vctags` command will be treated as files and/or
 directories that should be scanned by ctags.
+
+### vcfreeze
+
+Write a new requirements file for the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html). The
+requirements file contents are the result of the `pip freeze` command. The
+requirements file is written in the same directory that contains the
+[Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory, even if the command is ran in a subdirectory.
+If you don't want to name the output file to be `requirements.txt`, you can
+change the name of the output file with the `$VC_DEFAULT_VENV_REQFILE`
+environemental variable.
 
 ### vcbundle
 
@@ -194,7 +219,6 @@ This function is intended for internal use by VirtualCandy iteself, but it is
 available to the user.
 
 
-### vcin
 
 ## Per project settings via `.vc_proj` file
 
