@@ -114,6 +114,22 @@ function vcpkgskel()
     _vc_pkgskel $@
 } #vcpkgskel
 
+function vcclean()
+{
+    if [[ -n $1 ]]; then
+        echo "Are you sure you want to recursively delete files"
+        echo "that match the pattern(s):"
+        echo "$@"
+        read -p "!???! y/N" -n 1
+        if [[ $REPLY =~ ^[yY]$ ]]; then
+            echo
+            _vc_clean $@
+        else
+            _vc_clean
+        fi
+    fi
+}
+
 # Automatically activate the current directories
 # Virtualenv is one exists
 if [[ "$VC_AUTO_ACTIVATION" == "true" ]]; then

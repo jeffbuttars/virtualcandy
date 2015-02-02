@@ -531,3 +531,19 @@ function _vc_pkgskel()
     echo "$tmp_out" > "$pkg_name/Makefile"
 
 } # _vc_pkgskel
+
+function _vc_clean()
+{
+    # Do some basic python specific and general cleaning from current directory.
+    # Args will be treated as find -iname parameters and be deleted!
+    find . -iname '*.pyc' | xargs rm -fv
+    find . -iname '*.pyo' | xargs rm -fv
+
+    if [[ -n $1 ]]; then
+        if [[ $REPLY =~ ^[yY]$ ]]; then
+            for re in $@ ; do
+                find . -iname "$re" | xargs rm -fv
+            done
+        fi
+    fi
+} #_vc_clean
