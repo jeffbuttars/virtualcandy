@@ -143,6 +143,23 @@ directories that should be scanned by ctags.
 
 Creates a package bundle containing all of the packages listed in the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html)'s VC\_DEFAULT\_VENV\_REQFILE file. The name of the bundle output will be 'VC\_DEFAULT\_VENV\_NAME.pybundle', but with any leading '.' stripped from the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) name. For instance, if VC\_DEFAULT\_VENV\_NAME is '.myenv' the bundle will be named 'myenv.pybundle'.
 
+### vcclean
+Recursively clean file matching a set of patterns. 
+By default the file patterns '*.pyc' and '*.pyo' will be matched by default and
+without question. You can add additional patterns as parameters:
+
+    vcclean '*.txt' '*.md'
+
+    # Ex: clean out all tags files.
+    vcclean tags
+
+If additional patterns are given you will be prompted to confirm the use of the
+additional patterns. 
+`vcclean` is just a wrapper around:
+
+    find . -iname "<pattern>" | xargs rm -fv
+
+
 ### vc\_auto\_activate
 
 Checks the current directory for a [Virtualenv](http://www.virtualenv.org/en/latest/index.html) named VC\_DEFAULT\_VENV\_NAME. If it exists it is activated. This function is put into the PROMPT\_COMMAND variable and executed on every changed of directory.
