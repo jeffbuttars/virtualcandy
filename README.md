@@ -145,6 +145,7 @@ Creates a package bundle containing all of the packages listed in the current [V
 
 ### vcclean
 Recursively clean files matching a set of patterns. 
+**Be careful using this. It's very convenient and very destructive**  
 By default the file patterns `*.pyc` and `*.pyo` will be matched by default and
 without question. You can add additional patterns as parameters:
 
