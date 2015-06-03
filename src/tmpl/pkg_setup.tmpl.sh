@@ -3,6 +3,7 @@ cat << __EOF__
 
 
 import os
+import sys
 from pip.req import parse_requirements
 from pip.download import PipSession
 from setuptools import setup, find_packages
