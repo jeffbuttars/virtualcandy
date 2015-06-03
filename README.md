@@ -1,13 +1,31 @@
 virtualcandy
 ============
 
-### Smarter Shell Integration for [Python's](http://www.python.org/) [Virtualenv](http://www.virtualenv.org/en/latest/index.html)  
+## Smarter Shell Integration for [Python's](http://www.python.org/) [Virtualenv](http://www.virtualenv.org/en/latest/index.html)  
 
 This not an attempt to create another, or even better, set of wrapper functions
 for [Virtualenv](http://www.virtualenv.org/en/latest/index.html). This is a set of wrappers that I've built, like, and use
 everyday.
 
-## Installation
+* [Installation](#installation)
+* [Philosophy of Virtualenv](#philosophy-of-virtualenv)
+* [Configuration](#configuration)
+* [Functions](#functions)
+    * [vcstart](#vcstart)
+    * [vcactivate](#vcactivate)
+    * [vcin](#vcin)
+    * [vcpkgup](#vcpkgup)
+    * [vcpkgskel](#vcpkgskel)
+    * [vctags](#vctags)
+    * [vcfreeze](#vcfreeze)
+    * [vcbundle](#vcbundle)
+    * [vcclean](#vcclean)
+    * [vc_auto_activate](#vc_auto_activate)
+    * [vcfindenv](#vcfindenv)
+    * [vcfinddir](#vcfinddir)
+
+
+# Installation
 
 Just clone the repo. I use a ~/.virtualcandy directory to hold the code, but the
 location doesn't matter much.
@@ -25,7 +43,7 @@ or add the following line to your ~/.zshrc, as appropriate:
 
 That's it, VirtualCandy is installed!
 
-## Philosophy of [Virtualenv](http://www.virtualenv.org/en/latest/index.html) usage
+## Philosophy of Virtualenv
 
 My usage of [Virtualenv](http://www.virtualenv.org/en/latest/index.html) is very similar to how one uses Git or Hg.
 I create one [Virtualenv](http://www.virtualenv.org/en/latest/index.html) environment per project and that [Virtualenv](http://www.virtualenv.org/en/latest/index.html) environment
@@ -61,7 +79,7 @@ The auto activation (when set to 'true', it's off by default) of a [Virtualenv](
 
     VC_AUTO_ACTIVATION=false
 
-## Function Overview
+## Functions
 
 ### vcstart
 
@@ -86,15 +104,17 @@ updated to include the additional packages.
 `vcactivate` will activate the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) of the current project. `vcactivate` finds
 the current project by using the `vcfindenv` command.
 
-### vcfreeze
+### vcin
+Install a package into the current
+[Virtualenv](http://www.virtualenv.org/en/latest/index.html)
+and update the requirements file. 
 
-Write a new requirements file for the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html). The
-requirements file contents are the result of the `pip freeze` command. The
-requirements file is written in the same directory that contains the
-[Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory, even if the command is ran in a subdirectory.
-If you don't want to name the output file to be `requirements.txt`, you can
-change the name of the output file with the `$VC_DEFAULT_VENV_REQFILE`
-environemental variable.
+Ex:
+
+    # install the latest versions of Django and djnagorestframework
+    # and update the requirements file
+    vcin Django djnagorestframework
+
 
 ### vcpkgup
 
@@ -139,15 +159,27 @@ current working directory will also be recursively added to the tags file. Any
 parameters given to the `vctags` command will be treated as files and/or
 directories that should be scanned by ctags.
 
+### vcfreeze
+
+Write a new requirements file for the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html). The
+requirements file contents are the result of the `pip freeze` command. The
+requirements file is written in the same directory that contains the
+[Virtualenv](http://www.virtualenv.org/en/latest/index.html) directory, even if the command is ran in a subdirectory.
+If you don't want to name the output file to be `requirements.txt`, you can
+change the name of the output file with the `$VC_DEFAULT_VENV_REQFILE`
+environemental variable.
+
 ### vcbundle
 
 Creates a package bundle containing all of the packages listed in the current [Virtualenv](http://www.virtualenv.org/en/latest/index.html)'s VC\_DEFAULT\_VENV\_REQFILE file. The name of the bundle output will be 'VC\_DEFAULT\_VENV\_NAME.pybundle', but with any leading '.' stripped from the [Virtualenv](http://www.virtualenv.org/en/latest/index.html) name. For instance, if VC\_DEFAULT\_VENV\_NAME is '.myenv' the bundle will be named 'myenv.pybundle'.
 
 ### vcclean
-Recursively clean file matching a set of patterns. 
-By default the file patterns '*.pyc' and '*.pyo' will be matched by default and
+Recursively clean files matching a set of patterns.  
+**Be careful using this. It's very convenient and very destructive**  
+By default the file patterns `*.pyc` and `*.pyo` will be matched by default and
 without question. You can add additional patterns as parameters:
 
+    # Ex: clean out all files ending in .txt and .md
     vcclean '*.txt' '*.md'
 
     # Ex: clean out all tags files.
@@ -187,7 +219,6 @@ This function is intended for internal use by VirtualCandy iteself, but it is
 available to the user.
 
 
-### vcin
 
 ## Per project settings via `.vc_proj` file
 
