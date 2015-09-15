@@ -20,18 +20,17 @@ pr_pass()
 {
     # echo "$1"
     echo -en "${KGRN}$*${KNRM}"
-} #make_pass
+}
 
 pr_fail()
 {
     echo -en "${KRED}$*${KNRM}"
-} #make_fail
+}
 
 pr_info()
 {
     echo -en "${KBLU}$*${KNRM}"
-} #make_info
-
+}
 
 # Common code sourced by both bash and zsh
 # implimentations of virtualcandy.
@@ -48,6 +47,11 @@ fi
 if [[ -z $VC_DEFAULT_VENV_REQFILE ]]
 then
     VC_DEFAULT_VENV_REQFILE='requirements.txt'
+fi
+
+if [[ -z $VC_DEV_VENV_REQFILE ]]
+then
+    VC_DEV_VENV_REQFILE='dev_requirements.txt'
 fi
 
 if [[ -z $VC_AUTO_ACTIVATION ]]
@@ -91,6 +95,61 @@ then
     VC_NEW_SHELL='no'
 fi
 
+# For managing the different requirements list, we use
+# hash maps to help
+typeset -A REQ_MAP
+typeset -A DEV_REQ_MAP
+
+
+__build_req_maps()
+{
+    # Clear the req map
+    unset REQ_MAP
+    declare -A REQ_MAP
+
+    # Clear the dev req map
+    unset DEV_REQ_MAP
+    declare -A DEV_REQ_MAP
+
+    reqf="requirements.txt"
+    if [[ -n $VC_DEFAULT_VENV_REQFILE ]]; then
+        reqf="$VC_DEFAULT_VENV_REQFILE"
+    fi
+
+    cat "$reqf" | while read line; do
+        local k=$(echo "$line" | awk -F '==' '{print tolower($1)}')
+        local v=$(echo "$line" | awk -F '==' '{print $0}')
+        REQ_MAP["$k"]="$v"
+    done
+
+    dev_reqf="dev_requirements.txt"
+    if [[ -n $VC_DEV_VENV_REQFILE ]]; then
+        dev_reqf="$VC_DEV_VENV_REQFILE"
+    fi
+
+    if [[ -f $dev_reqf ]]; then
+        cat "$dev_reqf" | while read line; do
+            local k=$(echo "$line" | awk -F '==' '{print tolower($1)}')
+            local v=$(echo "$line" | awk -F '==' '{print $2}')
+            DEV_REQ_MAP["$k"]="$v"
+        done
+    fi
+
+    if [[ "zsh" == "${SHELL:${#SHELL}-3:3}" ]]; then
+        keys="${(k)REQ_MAP}"
+        dkeys="${(k)DEV_REQ_MAP}"
+    else
+        keys="${!REQ_MAP[@]}"
+        dkeys="${!DEV_REQ_MAP[@]}"
+    fi
+
+    echo "REQ_MAP: $keys"
+    echo "REQ_MAP: $REQ_MAP"
+    echo "DEV_REQ_MAP: ${DEV_REQ_MAP[@]}"
+    echo "DEV_REQ_MAP: $DEV_REQ_MAP"
+}
+
+
 _vc_source_project_file()
 {
     # If a project file exists, source it.
@@ -101,7 +160,7 @@ _vc_source_project_file()
             source ./"$VC_PROJECT_FILE" 
         fi
     fi
-} #_vc_source_project_file
+}
 
 
 function _vcfinddir()
@@ -132,7 +191,7 @@ function _vcfinddir()
     if [[ "$found" == "false" ]]; then
         echo ""
     fi
-} #_vcfinddir
+}
 
 _vc_ignore()
 {
@@ -147,8 +206,7 @@ _vc_ignore()
     else
         echo "A .gitignore already exists, doing nothing."
     fi
-    
-} #_vc_ignore
+}
 
 
 # Start a new virtualenv, or 
@@ -218,7 +276,7 @@ function _vcstart()
             echo
         fi
     done
-} #_vcstart
+}
 
 # A simple, and generic, pip update script.
 # For a given file containing a pkg lising
@@ -257,7 +315,7 @@ function _pip_update()
     fi
 
     echo $res
-} #_pip_update
+}
 
 # Upgrade the nearest virtualenv packages
 # and re-freeze them
@@ -293,7 +351,7 @@ function _vcpkgup()
     fi
     
     return $res
-} #_vcpkgup
+}
 
 function _vcfindenv()
 {
@@ -312,11 +370,23 @@ function _vcfindenv()
     fi
     echo $res
 
-} #_vcfindenv
+}
+
+function _vcfreeze_list()
+{
+    # echo "vcfreeze_list"
+
+    # make sure virutalenv is activated
+    vcactivate
+
+    pip freeze
+}
 
 function _vcfreeze()
 {
+    # echo "vcfreeze"
     _vc_source_project_file
+
     vd=''
     if [[ -n $1 ]]; then
         vd=$(vcfinddir $1)
@@ -324,21 +394,19 @@ function _vcfreeze()
         vd=$(vcfinddir)
     fi
 
-    # make sure virutalenv is activated
-    vcactivate
-
     if [[ -f "$vd/$VC_DEFAULT_VENV_REQFILE" ]]; then
         mv "$vd/$VC_DEFAULT_VENV_REQFILE"  "$vd/.${VC_DEFAULT_VENV_REQFILE}.bak"
     fi
 
-    pip freeze > "$vd/$VC_DEFAULT_VENV_REQFILE"
+    # _vcfreeze_list
+    _vcfreeze_list $@ > "$vd/$VC_DEFAULT_VENV_REQFILE"
     cat  "$vd/$VC_DEFAULT_VENV_REQFILE"
-} #_vcfreeze
+}
 
 function _vcactivate()
 {
     _vc_source_project_file
-    
+
     local vname=$VC_DEFAULT_VENV_NAME
     vloc=''
 
@@ -356,7 +424,7 @@ function _vcactivate()
         pr_fail "No virtualenv name $vname found.\n"
     fi
 
-} #_vcactivate
+}
 
 function _vctags()
 {
@@ -394,7 +462,7 @@ function _vctags()
             sleep 30
         done
     fi
-} #_vctags
+}
 
 
 function _vcbundle()
@@ -405,7 +473,7 @@ function _vcbundle()
     bname="${VC_DEFAULT_VENV_NAME#.}.pybundle"
     pr_info "Creating bundle $bname\n"
     pip bundle "$bname" -r "$vdir/$VC_DEFAULT_VENV_REQFILE"
-} #_vcbundle
+}
 
 
 function _vcmod()
@@ -427,21 +495,35 @@ function _vcmod()
         fi
         pr_pass "created $m/__init__.py\n"
     done
-} #_vcmod
+}
 
 _vcin()
 {
     _vc_source_project_file
     if [[ -z $1 ]]
     then
-        pr_fail "$0: No parameters given. Running install on requirements.txt\n"
-        pip install -r "$(_vcfinddir)/requirements.txt"
-        vcfreeze
-    fi 
+        pr_fail "$0: No parameters given. Running install on ${VC_DEFAULT_VENV_REQFILE}\n"
+        pip install -r "$(_vcfinddir)/${VC_DEFAULT_VENV_REQFILE}"
+    else
+        pip install $@
+    fi
 
-    pip install $@
     vcfreeze
-} #_vcin
+}
+
+_vcdin()
+{
+    _vc_source_project_file
+    __build_req_maps
+
+    if [[ -z $1 ]]
+    then
+        pr_fail "$0: No parameters given. Running install on ${VC_DEV_VENV_REQFILE}\n"
+        pip install -r "$(_vcfinddir)/${VC_DEV_VENV_REQFILE}"
+    else
+        pip install $@
+    fi
+}
 
 function _vc_auto_activate()
 {
@@ -470,7 +552,7 @@ function _vc_auto_activate()
         pr_info "Deactivating ~/${VIRTUAL_ENV#$HOME/}\n"
         deactivate
     fi
-} #_vc_auto_activate
+}
 
 
 function _vc_reset()
@@ -487,7 +569,7 @@ function _vc_reset()
         cd -
     fi
 
-} #_vc_reset
+}
 
 function _vc_pkgskel()
 {
@@ -530,7 +612,7 @@ function _vc_pkgskel()
     tmp_out=$(. "${TMPL_DIR}/pkg_makefile.tmpl.sh")
     echo "$tmp_out" > "$pkg_name/Makefile"
 
-} # _vc_pkgskel
+}
 
 function _vc_clean()
 {
@@ -546,4 +628,4 @@ function _vc_clean()
             done
         fi
     fi
-} #_vc_clean
+}

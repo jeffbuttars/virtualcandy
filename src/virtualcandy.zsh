@@ -24,7 +24,7 @@ function _vcexit()
         wait $VC_VCTAGS_PID
     fi
     
-} #_vcexit
+}
 
 # TRAPINT() {
 #     _vcexit
@@ -34,19 +34,19 @@ function _vcexit()
 function vcfinddir()
 {
     _vcfinddir
-} #vcfinddir
+}
 
 function vcignore()
 {
     _vc_ignore
-} #function vcignore
+}
 
 # Start a new virtualenv, or 
 # rebuild on from a requirements.txt file.
 function vcstart()
 {
     _vcstart $@
-} #vcstart
+}
 
 # A simple, and generic, pip update script.
 # For a given file containing a pkg lising
@@ -61,30 +61,30 @@ function vcstart()
 function pip_update()
 {
  _pip_update $@
-} #pip_update
+}
 
 # Upgrade the nearest virtualenv packages
 # and re-freeze them
 function vcpkgup()
 {
     _vcpkgup $@
-} #vcpkgup
+}
 
 
 function vcfindenv()
 {
     _vcfindenv $@
-} #vcfindenv
+}
 
 function vcfreeze()
 {
     _vcfreeze $@
-} #vcfreeze
+}
 
 function vcactivate()
 {
     _vcactivate $@
-} #vcactivate
+}
 alias -g vca='vcactivate'
 
 function _vctags()
@@ -116,7 +116,7 @@ function _vctags()
             sleep 30
         done
     fi
-} #_vctags
+}
 
 function vctags()
 {
@@ -124,38 +124,43 @@ function vctags()
     _vctags 1>/dev/null 2>&1 &
     VC_VCTAGS_PID="$!"
     echo "vctags: $VC_VCTAGS_PID"
-} #vctags
+}
 
 
 function vcbundle()
 {
     _vcbundle $@
-} #vcbundle
+}
 
 function vcmod()
 {
     _vcmod $@
-} #vcmod
+}
 
 function vcin()
 {
     _vcin $@
-} #vcin
+}
+
+function vcdin()
+{
+    _vcdin $@
+}
 
 function vc_auto_activate()
 {
     _vc_auto_activate $@
-} #vc_auto_activate
+}
 
 function vcreset()
 {
     _vc_reset $@
-} #vcreset
+}
 
 function vcpkgskel()
 {
     _vc_pkgskel $@
-} #function vcpkgskel
+}
 
 function vcclean()
 {
