@@ -14,6 +14,7 @@ everyday.
     * [vcstart](#vcstart)
     * [vcactivate](#vcactivate)
     * [vcin](#vcin)
+    * [vcdin](#vcdin)
     * [vcpkgup](#vcpkgup)
     * [vcpkgskel](#vcpkgskel)
     * [vctags](#vctags)
@@ -59,6 +60,16 @@ up the directory tree until one or no [Virtualenv](http://www.virtualenv.org/en/
 
 Set the following environemental variables in your ~/.bashrc, before
 you source the virtualcandy.sh file, to configure VirtualCandy settings.
+
+### Available config variables
+
+* `VC_DEFAULT_VENV_NAME` Name of the Virtualenv directory, default is '.venv'
+* `VC_DEFAULT_VENV_REQFILE` Name of the requirements file, default is 'requirements.txt'
+* `VC_AUTO_ACTIVATION` Enable auto Virtualenv activation, default is true
+* `VC_PYTHON_EXE` Python executable to use for the Virtualenv, default is $(basename $(which python))
+* `VC_VIRTUALENV_EXE` Virtualenv command to use, default is virtualenv
+* `VC_DEV_VENV_REQFILE` Name of the development requirements file, default is 'dev_requirements.txt'
+
 
 ### Naming it:
 
@@ -114,6 +125,25 @@ Ex:
     # install the latest versions of Django and djnagorestframework
     # and update the requirements file
     vcin Django djnagorestframework
+
+
+A wrapper around `pip install`. All arguments to `vcin` are passed to `pip
+install`. After `pip install` is run `vcfreeze` is run.
+
+
+### vcdin
+Install a package into the current
+[Virtualenv](http://www.virtualenv.org/en/latest/index.html)
+and update the development requirements file. 
+
+Ex:
+
+    # install the latest versions of neovim and ipython
+    # and update the development requirements file
+    vcdin neovim ipython
+
+A wrapper around `pip install`. All arguments to `vcdin` are passed to `pip
+install`. After `pip install` is run, `vcfreeze` is run.
 
 
 ### vcpkgup
@@ -234,17 +264,6 @@ Virtualenv directory to `.vc_venv`
 VC_PYTHON_EXE=python3
 VC_DEFAULT_VENV_NAME='.vc_venv'
 ```
-
-### Available config variables
-
-* `VC_DEFAULT_VENV_NAME` Name of the Virtualenv directory, Default is '.venv'
-* `VC_DEFAULT_VENV_REQFILE` Name of the requirements file, Default is 'requirements.txt'
-* `VC_AUTO_ACTIVATION` Enable auto Virtualenv activation, Default is true
-* `VC_PYTHON_EXE` Python executable to use for the Virtualenv, Default is $(basename $(which python))
-* `VC_VIRTUALENV_EXE` Virtualenv command to use, Default is virtualenv
-
-A wrapper around `pip install`. All arguments to `vcin` are passed to `pip
-install`. After `pip install` is run `vcfreeze` is run.
 
 ## References
 
