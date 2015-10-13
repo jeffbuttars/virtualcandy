@@ -20,18 +20,17 @@ pr_pass()
 {
     # echo "$1"
     echo -en "${KGRN}$*${KNRM}"
-} #make_pass
+}
 
 pr_fail()
 {
     echo -en "${KRED}$*${KNRM}"
-} #make_fail
+}
 
 pr_info()
 {
     echo -en "${KBLU}$*${KNRM}"
-} #make_info
-
+}
 
 # Common code sourced by both bash and zsh
 # implimentations of virtualcandy.
@@ -101,7 +100,7 @@ _vc_source_project_file()
             source ./"$VC_PROJECT_FILE" 
         fi
     fi
-} #_vc_source_project_file
+}
 
 
 function _vcfinddir()
@@ -132,7 +131,7 @@ function _vcfinddir()
     if [[ "$found" == "false" ]]; then
         echo ""
     fi
-} #_vcfinddir
+}
 
 _vc_ignore()
 {
@@ -147,8 +146,7 @@ _vc_ignore()
     else
         echo "A .gitignore already exists, doing nothing."
     fi
-    
-} #_vc_ignore
+}
 
 
 # Start a new virtualenv, or 
@@ -218,7 +216,7 @@ function _vcstart()
             echo
         fi
     done
-} #_vcstart
+}
 
 # A simple, and generic, pip update script.
 # For a given file containing a pkg lising
@@ -257,7 +255,7 @@ function _pip_update()
     fi
 
     echo $res
-} #_pip_update
+}
 
 # Upgrade the nearest virtualenv packages
 # and re-freeze them
@@ -293,7 +291,7 @@ function _vcpkgup()
     fi
     
     return $res
-} #_vcpkgup
+}
 
 function _vcfindenv()
 {
@@ -338,7 +336,7 @@ function _vcfreeze()
 function _vcactivate()
 {
     _vc_source_project_file
-    
+
     local vname=$VC_DEFAULT_VENV_NAME
     vloc=''
 
@@ -356,7 +354,7 @@ function _vcactivate()
         pr_fail "No virtualenv name $vname found.\n"
     fi
 
-} #_vcactivate
+}
 
 function _vctags()
 {
@@ -394,7 +392,7 @@ function _vctags()
             sleep 30
         done
     fi
-} #_vctags
+}
 
 
 function _vcbundle()
@@ -405,7 +403,7 @@ function _vcbundle()
     bname="${VC_DEFAULT_VENV_NAME#.}.pybundle"
     pr_info "Creating bundle $bname\n"
     pip bundle "$bname" -r "$vdir/$VC_DEFAULT_VENV_REQFILE"
-} #_vcbundle
+}
 
 
 function _vcmod()
@@ -427,7 +425,7 @@ function _vcmod()
         fi
         pr_pass "created $m/__init__.py\n"
     done
-} #_vcmod
+}
 
 _vcin()
 {
@@ -470,7 +468,7 @@ function _vc_auto_activate()
         pr_info "Deactivating ~/${VIRTUAL_ENV#$HOME/}\n"
         deactivate
     fi
-} #_vc_auto_activate
+}
 
 
 function _vc_reset()
@@ -487,7 +485,7 @@ function _vc_reset()
         cd -
     fi
 
-} #_vc_reset
+}
 
 function _vc_pkgskel()
 {
@@ -530,7 +528,7 @@ function _vc_pkgskel()
     tmp_out=$(. "${TMPL_DIR}/pkg_makefile.tmpl.sh")
     echo "$tmp_out" > "$pkg_name/Makefile"
 
-} # _vc_pkgskel
+}
 
 function _vc_clean()
 {
@@ -546,4 +544,15 @@ function _vc_clean()
             done
         fi
     fi
-} #_vc_clean
+}
+
+function _vc_proj()
+{
+    # Spit out the current VC environment vars.
+    # suitable for a skeleton .vc_proj file
+    echo "VC_PYTHON_EXE='$VC_PYTHON_EXE'"
+    echo "VC_DEFAULT_VENV_NAME='$VC_DEFAULT_VENV_NAME'"
+    echo "VC_DEFAULT_VENV_REQFILE='$VC_DEFAULT_VENV_REQFILE'"
+    echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"
+}
+
