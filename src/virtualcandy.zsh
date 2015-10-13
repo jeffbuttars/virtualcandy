@@ -162,6 +162,11 @@ function vcpkgskel()
     _vc_pkgskel $@
 }
 
+function vcproj()
+{
+    _vc_proj $@
+}
+
 function vcclean()
 {
     if [[ -n $1 ]]; then

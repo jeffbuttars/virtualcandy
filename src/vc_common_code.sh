@@ -629,3 +629,14 @@ function _vc_clean()
         fi
     fi
 }
+
+function _vc_proj()
+{
+    # Spit out the current VC environment vars.
+    # suitable for a skeleton .vc_proj file
+    echo "VC_PYTHON_EXE='$VC_PYTHON_EXE'"
+    echo "VC_DEFAULT_VENV_NAME='$VC_DEFAULT_VENV_NAME'"
+    echo "VC_DEFAULT_VENV_REQFILE='$VC_DEFAULT_VENV_REQFILE'"
+    echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"
+}
+

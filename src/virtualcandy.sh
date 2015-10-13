@@ -17,27 +17,26 @@ function clean_on_exit()
         wait $VC_VCTAGS_PID
     fi
     VC_AUTOTAG_RUN=0
-    
-} #clean_on_exit
+}
 
 trap "clean_on_exit" EXIT SIGINT SIGHUP SIGKILL SIGTERM
 
 function vcfinddir()
 {
     _vcfinddir
-} #vcfinddir
+}
 
 vcignore()
 {
     _vc_ignore
-} #vcignore
+}
 
 # Start a new virtualenv, or 
 # rebuild on from a requirements.txt file.
 function vcstart()
 {
 _vcstart
-} #vcstart
+}
 
 # A simple, and generic, pip update script.
 # For a given file containing a pkg lising
@@ -52,67 +51,69 @@ _vcstart
 function pip_update()
 {
     _pip_update $@
-} #pip_update
+}
 
 # Upgrade the nearest virtualenv packages
 # and re-freeze them
 function vcpkgup()
 {
     _vcpkgup $@
-} #vcpkgup
-
+}
 
 function vcfindenv()
 {
     _vcfindenv $@
-} #vcfindenv
+}
 
 function vcfreeze()
 {
     _vcfreeze $@
-} #vcfreeze
+}
 
 function vcactivate()
 {
     _vcactivate $@
-} #vcactivate
+}
 alias vca='vcactivate'
 
 
 function vctags()
 {
-    _vctags $@
-} #vctags
 
 function vcbundle()
 {
     _vcbundle $@
-} #vcbundle
+}
 
 function vcmod()
 {
     _vcmod $@
-} #vcmod
+}
 
 function vc_auto_activate()
 {
     _vc_auto_activate $@
-} #vc_auto_activate
+}
 
 function vcin()
 {
     _vcin $@
-} #vcin
+}
 
 function vcreset()
 {
     _vc_reset $@
-} #vcreset
+}
 
 function vcpkgskel()
 {
     _vc_pkgskel $@
-} #vcpkgskel
+}
+
+function vcproj()
+{
+    _vc_proj $@
+}
 
 function vcclean()
 {
