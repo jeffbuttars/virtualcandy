@@ -24,6 +24,7 @@ everyday.
     * [vc_auto_activate](#vc_auto_activate)
     * [vcfindenv](#vcfindenv)
     * [vcfinddir](#vcfinddir)
+    * [vcproj](#vcproj)
 
 
 # Installation
@@ -249,6 +250,11 @@ This function is intended for internal use by VirtualCandy iteself, but it is
 available to the user.
 
 
+### vcproj
+
+This will print out environemental variables used by VirtualCandy to stdout. This can be useful for
+creating a base `.vc_proj` file for a project.
+
 
 ## Per project settings via `.vc_proj` file
 
@@ -264,6 +270,14 @@ Virtualenv directory to `.vc_venv`
 VC_PYTHON_EXE=python3
 VC_DEFAULT_VENV_NAME='.vc_venv'
 ```
+
+It's helpful to use the `vcproj` command to create a base `.vc_proj` file with defaults to get
+started with:
+
+```sh
+vcproj > .vc_proj
+```
+
 
 ## References
 
