@@ -94,9 +94,9 @@ _vc_source_project_file()
     # If a project file exists, source it.
     if [[ -f "$VC_PROJECT_FILE" ]]; then
         if [[ "$SHELL" == "bash" ]]; then
-            . ./"$VC_PROJECT_FILE" 
+            . ./"$VC_PROJECT_FILE"
         else
-            source ./"$VC_PROJECT_FILE" 
+            source ./"$VC_PROJECT_FILE"
         fi
     fi
 }
@@ -164,12 +164,6 @@ function _vcstart()
     fi
 
     vname=$VC_DEFAULT_VENV_NAME
-    # if [[ -n $1 ]]; then
-    #     if [[ "$1" != "-" ]]; then
-    #         vname="$1"
-    #     fi
-    #     shift
-    # fi
 
     # Create the virtualenv.
     pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname\n"
@@ -203,6 +197,11 @@ function _vcstart()
     # current environment.
     if [[ ! -f requirements.txt ]]; then
         vcfreeze
+    fi
+
+    # Create a .vc_proj file if one doesn't exist
+    if [[ ! -f $VC_PROJECT_FILE ]]; then
+       _vc_proj > $VC_PROJECT_FILE
     fi
 
     # If we had install errors, display them.
@@ -549,9 +548,16 @@ function _vc_proj()
 {
     # Spit out the current VC environment vars.
     # suitable for a skeleton .vc_proj file
+    echo "# VC_PYTHON_EXE The python executable name to use"
     echo "VC_PYTHON_EXE='$VC_PYTHON_EXE'"
+    echo ""
+    echo "# VC_DEFAULT_VENV_NAME The name of the virtualenv directory"
     echo "VC_DEFAULT_VENV_NAME='$VC_DEFAULT_VENV_NAME'"
+    echo ""
+    echo "# VC_DEFAULT_VENV_REQFILE The name of the requirements file to use for packaging"
     echo "VC_DEFAULT_VENV_REQFILE='$VC_DEFAULT_VENV_REQFILE'"
+    echo ""
+    echo "# VC_VIRTUALENV_EXE The name of the virtualenv executable to use"
     echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"
 }
 
