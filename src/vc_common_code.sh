@@ -56,10 +56,9 @@ fi
 
 if [[ -z $VC_PYTHON_EXE ]]
 then
-
-    res=$(which python2.7)
+    res=$(which python3)
     if [[ -n $res ]]; then
-        VC_PYTHON_EXE=$(basename $(which python2.7))
+        VC_PYTHON_EXE=$(basename $(which python3))
     else
         VC_PYTHON_EXE=$(basename $(which python))
     fi
