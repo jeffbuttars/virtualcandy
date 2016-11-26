@@ -39,6 +39,14 @@ _backup_if_exists()
     fi
 }
 
+_shellexec ()
+{
+    local C_SHELL="$SHELL"
+    local tmpfile=$(mktemp)
+    echo -e "set +e\ntrap 'echo \"Exiting env\"' SIGINT SIGTERM\n " > "$tmpfile"
+    $C_SHELL --rcfile $tmpfile
+}
+
 # Common code sourced by both bash and zsh
 # implimentations of virtualcandy.
 # Shell specific code goes into each shells
@@ -85,9 +93,9 @@ _vc_source_project_file()
 function _vcfinddir()
 {
     _vc_source_project_file
-    cur=$PWD
-    vname=$VC_VENV_NAME
-    found='false'
+    local cur=$PWD
+    local vname=$VC_VENV_NAME
+    local found='false'
 
     while [[ "$cur" != "/" ]]; do
         if [[ -d "$cur/$vname" ]]; then
@@ -129,16 +137,7 @@ _vc_ignore()
 function _vcstart()
 {
     _vc_source_project_file
-
-    if [[ "$VC_NEW_SHELL" != 'no' ]]; then
-        # get our current shell
-        C_SHELL="$SHELL"
-
-        # Enter the new shell and start up the env.
-        $C_SHELL -c "$THIS_DIR/vc_new_shell.sh"
-    fi
-
-    vname=$VC_VENV_NAME
+    local vname=$VC_VENV_NAME
 
     # Create the virtualenv.
     pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname"
@@ -155,10 +154,10 @@ function _vcstart()
     # we'll also run freeze after word.
     if [[ -n $1 ]]; then
         for pkg in $@ ; do
-            err_out_file="/tmp/${pkg}_errs_$$"
+            local err_out_file="/tmp/${pkg}_errs_$$"
             pr_info "pip install $pkg"
-            eout=$(pip install $pkg 2>&1)
-            res="$?"
+            local eout=$(pip install $pkg 2>&1)
+            local res="$?"
             if [[ "0" != "$res" ]]; then
                 pr_fail "pip install $pkg had a failure, $res"
                 echo "$eout" > $err_out_file
@@ -181,7 +180,7 @@ function _vcstart()
 
     # If we had install errors, display them.
     for pkg in $@ ; do
-        err_out_file="/tmp/${pkg}_errs_$$"
+        local err_out_file="/tmp/${pkg}_errs_$$"
         if [[ -f $err_out_file ]]; then
             pr_fail "An error occurred while installing ${pkg}"
             pr_info "See file $err_out_file for details, error contents:\n"
@@ -204,7 +203,7 @@ function _vcstart()
 function _pip_update()
 {
     _vc_source_project_file
-    reqf="requirements.txt"
+    local reqf="requirements.txt"
 
     if [[ -n $VC_VENV_REQFILE ]]; then
         reqf="$VC_VENV_REQFILE"
@@ -215,8 +214,8 @@ function _pip_update()
     fi
 
     res=0
-    if [[ -f $reqf ]]; then
-        tfile="/tmp/pkglist_$RANDOM.txt"
+    local if [[ -f $reqf ]]; then
+        local tfile="/tmp/pkglist_$RANDOM.txt"
         pr_info "$tfile"
         cat $reqf | awk -F '==' '{print $1}' > $tfile
         pip install --upgrade -r $tfile
@@ -237,6 +236,7 @@ function _vcpkgup()
     _vc_source_project_file
     local vname=$VC_VENV_NAME
     local vdir=$(vcfinddir)
+    local res=0
 
     reqlist="$vdir/$VC_VENV_REQFILE"
 
@@ -268,7 +268,7 @@ function _vcpkgup()
 function _vcfindenv()
 {
     _vc_source_project_file
-    cur=$PWD
+    local cur=$PWD
     local vname=$VC_VENV_NAME
     local vdir=$(vcfinddir)
     local res=""
@@ -311,7 +311,7 @@ function _vcfreeze()
         echo "# vcdevfreeze:start" >> $tmp_req_file
         cat $VC_VENV_DEV_REQFILE >> $tmp_req_file
         for pkg in $@ ; do
-            pkg_reqs=($(pip show $pkg | sed -n '/^Requires:.*/{p}' | sed 's/^Requires: //' | sed 's/,//g'))
+            local pkg_reqs=($(pip show $pkg | sed -n '/^Requires:.*/{p}' | sed 's/^Requires: //' | sed 's/,//g'))
             echo "$pkg" >> "$tmp_req_file"
             for pkg_req in $pkg_reqs ; do
                 echo "$pkg_req" >> "$tmp_req_file"
@@ -344,7 +344,17 @@ function _vcactivate()
     _vc_source_project_file
 
     local vname=$VC_VENV_NAME
-    vloc=''
+    local vloc=''
+
+
+    if [[ "$VC_NEW_SHELL" == 'yes' ]]; then
+        # get our current shell
+        # Enter the new shell and start up the env.
+        # $C_SHELL -c "$THIS_DIR/vc_new_shell.sh"
+        pr_info "Using new shell"
+        _shellexec "cd $PWD; VC_NEW_SHELL=no && vcactivate"
+        return
+    fi
 
     vloc=$(vcfindenv)
 
@@ -360,11 +370,10 @@ function _vcactivate()
 function _vctags()
 {
     _vc_source_project_file
-    vloc=$(vcfindenv)
-    filelist="$vloc"
+    local vloc=$(vcfindenv)
+    local filelist="$vloc"
+    local ccmd="ctags --tag-relative=no -R --python-kinds=-i"
 
-    # ccmd="ctags --sort=yes --tag-relative=no -R --python-kinds=-i"
-    ccmd="ctags --tag-relative=no -R --python-kinds=-i"
     pr_info "$ccmd"
     if [[ -n $vloc ]]; then
         pr_info "Making tags with $vloc"
@@ -381,7 +390,7 @@ function _vctags()
     pr_info "Using command $ccmd"
     $ccmd
 
-    res=$(which inotifywait)
+    local res=$(which inotifywait)
     VC_AUTOTAG_RUN=1
     if [[ -n $res ]]; then
         while [[ "$VC_AUTOTAG_RUN" == "1" ]]; do
@@ -400,8 +409,8 @@ function _vcbundle()
 {
     _vc_source_project_file
     vcactivate
-    vdir=$(vcfinddir)
-    bname="${VC_VENV_NAME#.}.pybundle"
+    local vdir=$(vcfinddir)
+    local bname="${VC_VENV_NAME#.}.pybundle"
     pr_info "Creating bundle $bname"
     pip bundle "$bname" -r "$vdir/$VC_VENV_REQFILE"
 }
@@ -443,7 +452,8 @@ _vcin()
                 pip install -r "$(_vcfinddir)/$VC_VENV_DEV_REQFILE"
             fi
         fi
-        vcfreeze
+
+        return
     elif [[ $1 == "-d" ]]
     then
         pr_info "Installing as development packages...\n"
@@ -494,8 +504,8 @@ function _vc_auto_activate()
 
 function _vc_reset()
 {
-    to="$(vcfindenv)"
-    dto=$(dirname "$to")
+    local to="$(vcfindenv)"
+    local dto=$(dirname "$to")
     if [[ -d "$to" ]]; then
         rm -fr "$to"
         if [[ "$?" != '0' ]]; then
@@ -583,4 +593,3 @@ function _vc_proj()
     echo "# VC_VIRTUALENV_EXE The name of the virtualenv executable to use"
     echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"
 }
-
