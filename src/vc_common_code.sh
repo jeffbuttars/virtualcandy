@@ -285,19 +285,21 @@ function _vcfreeze()
 {
     pr_fail "VCFREEZE $@"
     _vc_source_project_file
-    local vd=''
+    local vd=$(vcfinddir)
     local vdev=''
 
     # Check if this is a dev freeze
     if [[ -n $1 ]]; then
         if [[ $1 == '-d' ]]; then
+            touch "$vd/$VC_DEFAULT_VENV_DEV_REQFILE"
             vdev='true'
             shift
             pr_fail "DEV FREEZE $@"
         fi
+    elif [[ -f "$vd/$VC_DEFAULT_VENV_DEV_REQFILE" ]]; then
+        vdev='true'
+        pr_fail "DEV FREEZE FOUN DEV FILE $@"
     fi
-
-    vd=$(vcfinddir)
 
     if [[ -z "$vd" ]]; then
         pr_fail "Unable to determine virtualenv project directory"
@@ -307,22 +309,43 @@ function _vcfreeze()
     # make sure virutalenv is activated
     vcactivate
 
-    if [[ -f "$vd/$VC_DEFAULT_VENV_REQFILE" ]]; then
-        mv -f "$vd/$VC_DEFAULT_VENV_REQFILE"  "$vd/.${VC_DEFAULT_VENV_REQFILE}.bak"
-    fi
-
     # If this is a dev freeze, cat the package list to the dev req file.
     # VC_DEFAULT_VENV_DEV_REQFILE
     if [[ -n $vdev ]]; then
-        pr_info "Dev freeze...\n"
+        local tmp_req_file="$(mktemp)"
+        pr_info "Dev freeze $tmp_req_file...\n"
+        echo "# vcdevfreeze:start" >> $tmp_req_file
+        cat $VC_DEFAULT_VENV_DEV_REQFILE >> $tmp_req_file
         for pkg in $@ ; do
             pr_info "PKG: $pkg\n"
-            echo "$pkg" >> "$vd/$VC_DEFAULT_VENV_DEV_REQFILE"
+            echo "$pkg" >> "$tmp_req_file"
         done
+        echo "# vcdevfreeze:stop" >> $tmp_req_file
+        cat $VC_DEFAULT_VENV_REQFILE >> $tmp_req_file
+
+        pr_fail "DEV REQS?"
+        if [[ -f "$vd/$VC_DEFAULT_VENV_DEV_REQFILE" ]]; then
+            mv -f "$vd/$VC_DEFAULT_VENV_DEV_REQFILE"  "$vd/.${VC_DEFAULT_VENV_DEV_REQFILE}.bak"
+        fi
+        pip freeze -q -r $tmp_req_file | sed -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/{p}' >  "$vd/$VC_DEFAULT_VENV_DEV_REQFILE"
+
+        pr_fail "NORMAL REQS?"
+        if [[ -f "$vd/$VC_DEFAULT_VENV_REQFILE" ]]; then
+            mv -f "$vd/$VC_DEFAULT_VENV_REQFILE"  "$vd/.${VC_DEFAULT_VENV_REQFILE}.bak"
+        fi
+        pip freeze -q -r $tmp_req_file | sed -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/!{p}' >  "$vd/$VC_DEFAULT_VENV_REQFILE"
+        # pr_fail "DEV REQS?"
+    else
+        if [[ -f "$vd/$VC_DEFAULT_VENV_REQFILE" ]]; then
+            mv -f "$vd/$VC_DEFAULT_VENV_REQFILE"  "$vd/.${VC_DEFAULT_VENV_REQFILE}.bak"
+        fi
+        # pr_fail "VCFREEZE freezing to $vd/$VC_DEFAULT_VENV_REQFILE\n"
+        pip freeze > "$vd/$VC_DEFAULT_VENV_REQFILE"
     fi
 
-    # pr_fail "VCFREEZE freezing to $vd/$VC_DEFAULT_VENV_REQFILE\n"
-    pip freeze > "$vd/$VC_DEFAULT_VENV_REQFILE"
+    pr_info "Development requirements...\n"
+    cat "$vd/$VC_DEFAULT_VENV_DEV_REQFILE"
+    pr_info "\nProduction requirements...\n"
     cat "$vd/$VC_DEFAULT_VENV_REQFILE"
 }
 
