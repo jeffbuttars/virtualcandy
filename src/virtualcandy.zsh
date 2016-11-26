@@ -140,7 +140,12 @@ function vcmod()
 function vcin()
 {
     _vcin $@
-} #vcin
+}
+
+function vcrem()
+{
+    _vcrem $@
+}
 
 function vc_auto_activate()
 {

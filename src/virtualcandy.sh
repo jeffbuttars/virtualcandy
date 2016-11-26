@@ -102,6 +102,11 @@ function vcin()
     _vcin $@
 }
 
+function vcrem()
+{
+    _vcrem $@
+}
+
 function vcreset()
 {
     _vc_reset $@

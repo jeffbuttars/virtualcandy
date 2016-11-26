@@ -19,7 +19,7 @@ TMPL_DIR="${THIS_DIR}/tmpl"
 
 pr_pass()
 {
-    echo -en "${KGRN}$*${KNRM}"
+    echo -en "${KGRN}$*${KNRM}\n"
 }
 
 pr_fail()
@@ -29,7 +29,14 @@ pr_fail()
 
 pr_info()
 {
-    echo -en "${KBLU}$*${KNRM}"
+    echo -en "${KBLU}$*${KNRM}\n"
+}
+
+_backup_if_exists()
+{
+    if [[ -f "$1" ]]; then
+        mv -f "$1"  "$(dirname $1)/.$(basename $1).bak"
+    fi
 }
 
 # Common code sourced by both bash and zsh
@@ -79,12 +86,8 @@ function _vcfinddir()
 {
     _vc_source_project_file
     cur=$PWD
-    vname=$VC_DEFAULT_VENV_NAME
+    vname=$VC_VENV_NAME
     found='false'
-
-    if [[ -n $1 ]]; then
-        vname="$1"
-    fi
 
     while [[ "$cur" != "/" ]]; do
         if [[ -d "$cur/$vname" ]]; then
@@ -111,7 +114,7 @@ _vc_ignore()
     local igfile="$(vcfinddir)/.gitignore"
 
     if [[ ! -f $igfile ]]; then
-        echo "$VC_DEFAULT_VENV_NAME" > $igfile
+        echo "$VC_VENV_NAME" > $igfile
         echo "*.pyo" >> $igfile
         echo "*.pyc" >> $igfile
         git add $igfile
@@ -125,7 +128,6 @@ _vc_ignore()
 # rebuild on from a requirements.txt file.
 function _vcstart()
 {
-
     _vc_source_project_file
 
     if [[ "$VC_NEW_SHELL" != 'no' ]]; then
@@ -136,16 +138,16 @@ function _vcstart()
         $C_SHELL -c "$THIS_DIR/vc_new_shell.sh"
     fi
 
-    vname=$VC_DEFAULT_VENV_NAME
+    vname=$VC_VENV_NAME
 
     # Create the virtualenv.
-    pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname\n"
+    pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname"
     $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname
     . $vname/bin/activate
 
     # If there is a requriemnts file, install it's packages.
     if [[ -f requirements.txt ]]; then
-        pip install -r $VC_DEFAULT_VENV_REQFILE
+        _vcin
     fi
 
     # Treat any parameters as packages to install.
@@ -154,7 +156,7 @@ function _vcstart()
     if [[ -n $1 ]]; then
         for pkg in $@ ; do
             err_out_file="/tmp/${pkg}_errs_$$"
-            pr_info "pip install $pkg\n"
+            pr_info "pip install $pkg"
             eout=$(pip install $pkg 2>&1)
             res="$?"
             if [[ "0" != "$res" ]]; then
@@ -182,8 +184,8 @@ function _vcstart()
         err_out_file="/tmp/${pkg}_errs_$$"
         if [[ -f $err_out_file ]]; then
             pr_fail "An error occurred while installing ${pkg}"
-            pr_info "See file $err_out_file for details, error contents:\n\n"
-            pr_info "$(cat $err_out_file)\n"
+            pr_info "See file $err_out_file for details, error contents:\n"
+            pr_info "$(cat $err_out_file)"
             echo
         fi
     done
@@ -193,7 +195,7 @@ function _vcstart()
 # For a given file containing a pkg lising
 # all packages are updated. If no args are given,
 # then a 'requirements.txt' file will be looked
-# for in the current directory. If the $VC_DEFAULT_VENV_REQFILE
+# for in the current directory. If the $VC_VENV_REQFILE
 # variable is set, than that filename will be looked
 # for in the current directory.
 # If an argument is passed to the function, then
@@ -204,8 +206,8 @@ function _pip_update()
     _vc_source_project_file
     reqf="requirements.txt"
 
-    if [[ -n $VC_DEFAULT_VENV_REQFILE ]]; then
-        reqf="$VC_DEFAULT_VENV_REQFILE"
+    if [[ -n $VC_VENV_REQFILE ]]; then
+        reqf="$VC_VENV_REQFILE"
     fi
 
     if [[ -n $1 ]]; then
@@ -215,7 +217,7 @@ function _pip_update()
     res=0
     if [[ -f $reqf ]]; then
         tfile="/tmp/pkglist_$RANDOM.txt"
-        pr_info "$tfile\n"
+        pr_info "$tfile"
         cat $reqf | awk -F '==' '{print $1}' > $tfile
         pip install --upgrade -r $tfile
         res=$?
@@ -233,21 +235,21 @@ function _pip_update()
 function _vcpkgup()
 {
     _vc_source_project_file
-    local vname=$VC_DEFAULT_VENV_NAME
-    local vdir=$(vcfinddir $vname)
+    local vname=$VC_VENV_NAME
+    local vdir=$(vcfinddir)
 
-    reqlist="$vdir/$VC_DEFAULT_VENV_REQFILE"
+    reqlist="$vdir/$VC_VENV_REQFILE"
 
     if [ ! -z $1 ]; then
-        pr_info "Updating $@\n"
+        pr_info "Updating $@"
         for pkg in "$@" ; do
             pip install -U --no-deps $pkg
             res=$?
         done
         vcfreeze
     elif [[ -f $reqlist ]]; then
-        pr_info "Updating all in $reqlist\n"
-        vcactivate $vname
+        pr_info "Updating all in $reqlist"
+        vcactivate
         pip_update $reqlist
         res=$?
         if [[ "$res" == 0 || "$res" == "" ]]; then
@@ -267,23 +269,19 @@ function _vcfindenv()
 {
     _vc_source_project_file
     cur=$PWD
-    local vname=$VC_DEFAULT_VENV_NAME
-
-    if [[ -n $1 ]]; then
-        vname="$1"
-    fi
-
-    local vdir=$(vcfinddir $vname)
+    local vname=$VC_VENV_NAME
+    local vdir=$(vcfinddir)
     local res=""
+
     if [[ -n $vdir ]]; then
         res="$vdir/$vname"
     fi
+
     echo $res
 }
 
 function _vcfreeze()
 {
-    pr_fail "VCFREEZE $@"
     _vc_source_project_file
     local vd=$(vcfinddir)
     local vdev=''
@@ -291,14 +289,12 @@ function _vcfreeze()
     # Check if this is a dev freeze
     if [[ -n $1 ]]; then
         if [[ $1 == '-d' ]]; then
-            touch "$vd/$VC_DEFAULT_VENV_DEV_REQFILE"
+            touch "$vd/$VC_VENV_DEV_REQFILE"
             vdev='true'
             shift
-            pr_fail "DEV FREEZE $@"
         fi
-    elif [[ -f "$vd/$VC_DEFAULT_VENV_DEV_REQFILE" ]]; then
+    elif [[ -f "$vd/$VC_VENV_DEV_REQFILE" ]]; then
         vdev='true'
-        pr_fail "DEV FREEZE FOUN DEV FILE $@"
     fi
 
     if [[ -z "$vd" ]]; then
@@ -310,61 +306,50 @@ function _vcfreeze()
     vcactivate
 
     # If this is a dev freeze, cat the package list to the dev req file.
-    # VC_DEFAULT_VENV_DEV_REQFILE
     if [[ -n $vdev ]]; then
         local tmp_req_file="$(mktemp)"
-        pr_info "Dev freeze $tmp_req_file...\n"
         echo "# vcdevfreeze:start" >> $tmp_req_file
-        cat $VC_DEFAULT_VENV_DEV_REQFILE >> $tmp_req_file
+        cat $VC_VENV_DEV_REQFILE >> $tmp_req_file
         for pkg in $@ ; do
-            pr_info "PKG: $pkg\n"
+            pkg_reqs=($(pip show $pkg | sed -n '/^Requires:.*/{p}' | sed 's/^Requires: //' | sed 's/,//g'))
             echo "$pkg" >> "$tmp_req_file"
+            for pkg_req in $pkg_reqs ; do
+                echo "$pkg_req" >> "$tmp_req_file"
+            done
         done
         echo "# vcdevfreeze:stop" >> $tmp_req_file
-        cat $VC_DEFAULT_VENV_REQFILE >> $tmp_req_file
+        cat $VC_VENV_REQFILE >> $tmp_req_file
 
-        pr_fail "DEV REQS?"
-        if [[ -f "$vd/$VC_DEFAULT_VENV_DEV_REQFILE" ]]; then
-            mv -f "$vd/$VC_DEFAULT_VENV_DEV_REQFILE"  "$vd/.${VC_DEFAULT_VENV_DEV_REQFILE}.bak"
-        fi
-        pip freeze -q -r $tmp_req_file | sed -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/{p}' >  "$vd/$VC_DEFAULT_VENV_DEV_REQFILE"
+        _backup_if_exists "$vd/$VC_VENV_DEV_REQFILE"
+        pip freeze -q -r $tmp_req_file | sed -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/{//!p}' | sed '/^##/ d' >  "$vd/$VC_VENV_DEV_REQFILE"
 
-        pr_fail "NORMAL REQS?"
-        if [[ -f "$vd/$VC_DEFAULT_VENV_REQFILE" ]]; then
-            mv -f "$vd/$VC_DEFAULT_VENV_REQFILE"  "$vd/.${VC_DEFAULT_VENV_REQFILE}.bak"
-        fi
-        pip freeze -q -r $tmp_req_file | sed -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/!{p}' >  "$vd/$VC_DEFAULT_VENV_REQFILE"
-        # pr_fail "DEV REQS?"
+        _backup_if_exists "$vd/$VC_VENV_REQFILE"
+        pip freeze -q -r $tmp_req_file | sed -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/!{p}'  | sed '/^##/ d' >  "$vd/$VC_VENV_REQFILE"
     else
-        if [[ -f "$vd/$VC_DEFAULT_VENV_REQFILE" ]]; then
-            mv -f "$vd/$VC_DEFAULT_VENV_REQFILE"  "$vd/.${VC_DEFAULT_VENV_REQFILE}.bak"
-        fi
-        # pr_fail "VCFREEZE freezing to $vd/$VC_DEFAULT_VENV_REQFILE\n"
-        pip freeze > "$vd/$VC_DEFAULT_VENV_REQFILE"
+        _backup_if_exists "$vd/$VC_VENV_REQFILE"
+        pip freeze > "$vd/$VC_VENV_REQFILE"
     fi
 
-    pr_info "Development requirements...\n"
-    cat "$vd/$VC_DEFAULT_VENV_DEV_REQFILE"
-    pr_info "\nProduction requirements...\n"
-    cat "$vd/$VC_DEFAULT_VENV_REQFILE"
+    if [[ -f  "$vd/$VC_VENV_DEV_REQFILE" ]]; then
+        pr_info "Development requirements..."
+        cat "$vd/$VC_VENV_DEV_REQFILE"
+    fi
+
+    pr_info "\nProduction requirements..."
+    cat "$vd/$VC_VENV_REQFILE"
 }
 
 function _vcactivate()
 {
     _vc_source_project_file
 
-    local vname=$VC_DEFAULT_VENV_NAME
+    local vname=$VC_VENV_NAME
     vloc=''
-
-    if [[ -n $1 ]]; then
-        vname="$1"
-        shift
-    fi
 
     vloc=$(vcfindenv)
 
     if [[ -n $vloc ]]; then
-        pr_pass "Activating ~${vloc#$HOME/}\n"
+        pr_pass "Activating ~${vloc#$HOME/}"
         . "$vloc/bin/activate"
     else
         pr_fail "No virtualenv name $vname found."
@@ -380,9 +365,9 @@ function _vctags()
 
     # ccmd="ctags --sort=yes --tag-relative=no -R --python-kinds=-i"
     ccmd="ctags --tag-relative=no -R --python-kinds=-i"
-    pr_info "$ccmd\n"
+    pr_info "$ccmd"
     if [[ -n $vloc ]]; then
-        pr_info "Making tags with $vloc\n"
+        pr_info "Making tags with $vloc"
         filelist="$vloc"
     fi
 
@@ -393,7 +378,7 @@ function _vctags()
     fi
 
     ccmd="$ccmd $filelist"
-    pr_info "Using command $ccmd\n"
+    pr_info "Using command $ccmd"
     $ccmd
 
     res=$(which inotifywait)
@@ -416,9 +401,9 @@ function _vcbundle()
     _vc_source_project_file
     vcactivate
     vdir=$(vcfinddir)
-    bname="${VC_DEFAULT_VENV_NAME#.}.pybundle"
-    pr_info "Creating bundle $bname\n"
-    pip bundle "$bname" -r "$vdir/$VC_DEFAULT_VENV_REQFILE"
+    bname="${VC_VENV_NAME#.}.pybundle"
+    pr_info "Creating bundle $bname"
+    pip bundle "$bname" -r "$vdir/$VC_VENV_REQFILE"
 }
 
 
@@ -435,11 +420,11 @@ function _vcmod()
         mkdir -p "$m"
         if [[ ! -f "$m/__init__.py" ]]
         then
-            touch "$m/__init__.py" 
+            touch "$m/__init__.py"
         else
-            pr_info "$0: A module named $m already exists.\n"
+            pr_info "$0: A module named $m already exists."
         fi
-        pr_pass "created $m/__init__.py\n"
+        pr_pass "created $m/__init__.py"
     done
 }
 
@@ -450,8 +435,14 @@ _vcin()
 
     if [[ -z $1 ]]
     then
-        pr_fail "$0: No parameters given. Running install on requirements.txt"
-        pip install -r "$(_vcfinddir)/requirements.txt"
+        pr_info "$0: No parameters given. Running install on requirements.txt"
+        pip install -r "$(_vcfinddir)/$VC_VENV_REQFILE"
+        if [[ $PYTHON_ENV != 'production' ]]; then
+            if [[ -f  "$(_vcfinddir)/$VC_VENV_DEV_REQFILE"  ]]; then
+                pr_info "Found the development requirements file, installing it's packages..."
+                pip install -r "$(_vcfinddir)/$VC_VENV_DEV_REQFILE"
+            fi
+        fi
         vcfreeze
     elif [[ $1 == "-d" ]]
     then
@@ -462,6 +453,13 @@ _vcin()
 
     pip install $@
     vcfreeze $freeze_params
+}
+
+_vcrem()
+{
+    _vc_source_project_file
+    pip uninstall $@
+    vcfreeze
 }
 
 function _vc_auto_activate()
@@ -496,7 +494,7 @@ function _vc_auto_activate()
 
 function _vc_reset()
 {
-    to="$(vcfindenv $@)"
+    to="$(vcfindenv)"
     dto=$(dirname "$to")
     if [[ -d "$to" ]]; then
         rm -fr "$to"
@@ -576,11 +574,11 @@ function _vc_proj()
     echo "# VC_PYTHON_EXE The python executable name to use"
     echo "VC_PYTHON_EXE='$VC_PYTHON_EXE'"
     echo ""
-    echo "# VC_DEFAULT_VENV_NAME The name of the virtualenv directory"
-    echo "VC_DEFAULT_VENV_NAME='$VC_DEFAULT_VENV_NAME'"
+    echo "# VC_VENV_NAME The name of the virtualenv directory"
+    echo "VC_VENV_NAME='$VC_VENV_NAME'"
     echo ""
-    echo "# VC_DEFAULT_VENV_REQFILE The name of the requirements file to use for packaging"
-    echo "VC_DEFAULT_VENV_REQFILE='$VC_DEFAULT_VENV_REQFILE'"
+    echo "# VC_VENV_REQFILE The name of the requirements file to use for packaging"
+    echo "VC_VENV_REQFILE='$VC_VENV_REQFILE'"
     echo ""
     echo "# VC_VIRTUALENV_EXE The name of the virtualenv executable to use"
     echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"

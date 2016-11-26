@@ -1,20 +1,20 @@
 
 # Name of the virtualenv directory
-if [[ -z $VC_DEFAULT_VENV_NAME ]]
+if [[ -z $VC_VENV_NAME ]]
 then
-    export VC_DEFAULT_VENV_NAME='.venv'
+    export VC_VENV_NAME='.venv'
 fi
 
 # Requirements filename
-if [[ -z $VC_DEFAULT_VENV_REQFILE ]]
+if [[ -z $VC_VENV_REQFILE ]]
 then
-    export VC_DEFAULT_VENV_REQFILE='requirements.txt'
+    export VC_VENV_REQFILE='requirements.txt'
 fi
 
 # Dev Requirements filename
-if [[ -z $VC_DEFAULT_VENV_DEV_REQFILE ]]
+if [[ -z $VC_VENV_DEV_REQFILE ]]
 then
-    export VC_DEFAULT_VENV_DEV_REQFILE='dev-requirements.txt'
+    export VC_VENV_DEV_REQFILE='dev-requirements.txt'
 fi
 
 # Auto activate the virtualenv when it's directory is entered
