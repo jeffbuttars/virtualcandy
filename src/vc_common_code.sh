@@ -7,24 +7,24 @@
 KNRM="\033[0m"
 KRED="\033[0;31m"
 KGRN="\033[0;32m"
-# KYEL="\x1B[33m"
+KYEL="\x1B[33m"
 KBLU="\033[0;34m"
-# KMAG="\x1B[35m"
-# KCYN="\x1B[36m"
-# KWHT="\x1B[37m"
+KMAG="\x1B[35m"
+KCYN="\x1B[36m"
+KWHT="\x1B[37m"
 
 THIS_DIR="$(dirname $0)"
 TMPL_DIR="${THIS_DIR}/tmpl"
+. "${THIS_DIR}/vc_config.sh"
 
 pr_pass()
 {
-    # echo "$1"
     echo -en "${KGRN}$*${KNRM}"
 }
 
 pr_fail()
 {
-    echo -en "${KRED}$*${KNRM}" >&2
+    echo -en "${KRED}$*${KNRM}\n" >&2
 }
 
 pr_info()
@@ -36,38 +36,6 @@ pr_info()
 # implimentations of virtualcandy.
 # Shell specific code goes into each shells
 # primary file.
-
-VC_PROJECT_FILE=".vc_proj"
-
-if [[ -z $VC_DEFAULT_VENV_NAME ]]
-then
-    VC_DEFAULT_VENV_NAME='.venv'
-fi
-
-if [[ -z $VC_DEFAULT_VENV_REQFILE ]]
-then
-    VC_DEFAULT_VENV_REQFILE='requirements.txt'
-fi
-
-if [[ -z $VC_DEFAULT_VENV_DEV_REQFILE ]]
-then
-    VC_DEFAULT_VENV_DEV_REQFILE='dev-requirements.txt'
-fi
-
-if [[ -z $VC_AUTO_ACTIVATION ]]
-then
-    VC_AUTO_ACTIVATION=true
-fi
-
-if [[ -z $VC_PYTHON_EXE ]]
-then
-    res=$(which python3)
-    if [[ -n $res ]]; then
-        VC_PYTHON_EXE=$(basename $(which python3))
-    else
-        VC_PYTHON_EXE=$(basename $(which python))
-    fi
-fi
 
 if [[ -z $VC_VIRTUALENV_EXE ]]
 then
@@ -190,7 +158,7 @@ function _vcstart()
             eout=$(pip install $pkg 2>&1)
             res="$?"
             if [[ "0" != "$res" ]]; then
-                pr_fail "pip install $pkg had a failure, $res\n"
+                pr_fail "pip install $pkg had a failure, $res"
                 echo "$eout" > $err_out_file
             fi
         done
@@ -213,7 +181,7 @@ function _vcstart()
     for pkg in $@ ; do
         err_out_file="/tmp/${pkg}_errs_$$"
         if [[ -f $err_out_file ]]; then
-            pr_fail "An error occurred while installing ${pkg}\n"
+            pr_fail "An error occurred while installing ${pkg}"
             pr_info "See file $err_out_file for details, error contents:\n\n"
             pr_info "$(cat $err_out_file)\n"
             echo
@@ -253,7 +221,7 @@ function _pip_update()
         res=$?
         rm -f $tfile
     else
-        pr_fail "Unable to find package list file: $reqf\n"
+        pr_fail "Unable to find package list file: $reqf"
         res=1
     fi
 
@@ -285,10 +253,10 @@ function _vcpkgup()
         if [[ "$res" == 0 || "$res" == "" ]]; then
             vcfreeze
         else
-            pr_fail "Bad exit status from pip_update, not freezing the package list.\n"
+            pr_fail "Bad exit status from pip_update, not freezing the package list."
         fi
     else
-        pr_fail "No requirements.txt file found!\n"
+        pr_fail "No requirements.txt file found!"
         res=0
     fi
 
@@ -315,7 +283,7 @@ function _vcfindenv()
 
 function _vcfreeze()
 {
-    pr_fail "VCFREEZE $@\n"
+    pr_fail "VCFREEZE $@"
     _vc_source_project_file
     local vd=''
     local vdev=''
@@ -325,7 +293,7 @@ function _vcfreeze()
         if [[ $1 == '-d' ]]; then
             vdev='true'
             shift
-            pr_fail "DEV FREEZE $@\n"
+            pr_fail "DEV FREEZE $@"
         fi
     fi
 
@@ -376,7 +344,7 @@ function _vcactivate()
         pr_pass "Activating ~${vloc#$HOME/}\n"
         . "$vloc/bin/activate"
     else
-        pr_fail "No virtualenv name $vname found.\n"
+        pr_fail "No virtualenv name $vname found."
     fi
 
 }
@@ -436,7 +404,7 @@ function _vcmod()
     _vc_source_project_file
     if [[ -z $1 ]]
     then
-        pr_fail "$0: At least one module name is required.\n"
+        pr_fail "$0: At least one module name is required."
         exit 1
     fi 
 
@@ -459,7 +427,7 @@ _vcin()
 
     if [[ -z $1 ]]
     then
-        pr_fail "$0: No parameters given. Running install on requirements.txt\n"
+        pr_fail "$0: No parameters given. Running install on requirements.txt"
         pip install -r "$(_vcfinddir)/requirements.txt"
         vcfreeze
     elif [[ $1 == "-d" ]]
@@ -529,8 +497,8 @@ function _vc_pkgskel()
     local pkg_name="$1"
 
     if [[ -d "$pkg_name" ]]; then
-        pr_fail "A directory named $pkg_name already exists.\n"
-        pr_fail "Not building package skeleton for $pkg_name.\n"
+        pr_fail "A directory named $pkg_name already exists."
+        pr_fail "Not building package skeleton for $pkg_name."
         exit 1
     fi
 
