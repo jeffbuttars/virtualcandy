@@ -309,7 +309,7 @@ function _vcfreeze()
     if [[ -n $vdev ]]; then
         local tmp_req_file="$(mktemp)"
         echo "# vcdevfreeze:start" >> $tmp_req_file
-        cat $VC_VENV_DEV_REQFILE >> $tmp_req_file
+        cat "$vd/$VC_VENV_DEV_REQFILE" >> $tmp_req_file
         for pkg in $@ ; do
             pkg_reqs=($(pip show $pkg | sed -n '/^Requires:.*/{p}' | sed 's/^Requires: //' | sed 's/,//g'))
             echo "$pkg" >> "$tmp_req_file"
@@ -318,7 +318,7 @@ function _vcfreeze()
             done
         done
         echo "# vcdevfreeze:stop" >> $tmp_req_file
-        cat $VC_VENV_REQFILE >> $tmp_req_file
+        cat "$vd/$VC_VENV_REQFILE" >> $tmp_req_file
 
         _backup_if_exists "$vd/$VC_VENV_DEV_REQFILE"
         pip freeze -q -r $tmp_req_file | sed -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/{//!p}' | sed '/^##/ d' >  "$vd/$VC_VENV_DEV_REQFILE"
