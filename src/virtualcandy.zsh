@@ -23,7 +23,6 @@ function _vcexit()
         kill $VC_VCTAGS_PID
         wait $VC_VCTAGS_PID
     fi
-    
 }
 
 # TRAPINT() {

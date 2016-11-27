@@ -352,7 +352,7 @@ function _vcactivate()
         pr_pass "Activating ~${vloc#$HOME/}"
         . "$vloc/bin/activate"
     else
-        pr_fail "No virtualenv name $vname found."
+        pr_fail "No virtualenv named $vname found."
     fi
 
 }
@@ -435,7 +435,7 @@ _vcin()
 
     if [[ -z $1 ]]
     then
-        pr_info "$0: No parameters given. Running install on requirements.txt"
+        pr_info "No packages given. Running install on requirements.txt"
         pip install -r "$(_vcfinddir)/$VC_VENV_REQFILE"
         if [[ $PYTHON_ENV != 'production' ]]; then
             if [[ -f  "$(_vcfinddir)/$VC_VENV_DEV_REQFILE"  ]]; then
@@ -467,11 +467,11 @@ function _vc_auto_activate()
     # see if we're under a virtualenv.
     local c_venv="$(vcfindenv)"
 
-    if [[ ! -z $c_venv ]]; then
+    if [[ -n $c_venv ]]; then
         # We're in/under an environment.
         # If we're activated, switch to the new one if it's different from the
         # current.
-        if [[ ! -z $VIRTUAL_ENV ]]; then
+        if [[ -n $VIRTUAL_ENV ]]; then
             from="~/${VIRTUAL_ENV#$HOME/}"
             to="~/${c_venv#$HOME/}"
             if [ "$from" != "$to" ]; then
@@ -484,7 +484,7 @@ function _vc_auto_activate()
         if [[ -z $VIRTUAL_ENV ]]; then
             vcactivate
         fi
-    elif [[ ! -z $VIRTUAL_ENV ]]; then
+    elif [[ -n $VIRTUAL_ENV ]]; then
         # We've left an environment, so deactivate.
         pr_info "Deactivating ~/${VIRTUAL_ENV#$HOME/}\n"
         deactivate
