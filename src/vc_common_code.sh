@@ -13,7 +13,8 @@ KMAG="\x1B[35m"
 KCYN="\x1B[36m"
 KWHT="\x1B[37m"
 
-THIS_DIR="$(dirname $0)"
+THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+#THIS_DIR="$( dirname $0 )"
 TMPL_DIR="${THIS_DIR}/tmpl"
 . "${THIS_DIR}/vc_config.sh"
 
