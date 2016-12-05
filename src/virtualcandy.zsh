@@ -8,7 +8,7 @@
 # what's necessary
 
 THIS_FILE=$0:A
-THIS_DIR=$(dirname $THIS_FILE)
+export THIS_DIR=$(dirname $THIS_FILE)
 
 source "$THIS_DIR/vc_common_code.sh"
 

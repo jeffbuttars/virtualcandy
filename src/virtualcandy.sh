@@ -7,7 +7,7 @@
 # Source in the common code first, override
 # what's necessary
 
-THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+export THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$THIS_DIR/vc_common_code.sh"
 
 function clean_on_exit()
