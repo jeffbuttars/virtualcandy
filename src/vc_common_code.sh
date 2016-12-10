@@ -38,6 +38,12 @@ _backup_if_exists()
     fi
 }
 
+SED='sed'
+which gsed
+if [[ "$?" == "0" ]]; then
+    SED='gsed'
+fi
+
 # Common code sourced by both bash and zsh
 # implimentations of virtualcandy.
 # Shell specific code goes into each shells
@@ -310,7 +316,7 @@ function _vcfreeze()
         echo "# vcdevfreeze:start" >> $tmp_req_file
         cat "$vd/$VC_VENV_DEV_REQFILE" >> $tmp_req_file
         for pkg in $@ ; do
-            pkg_reqs=($(pip show $pkg | sed -n '/^Requires:.*/{p}' | sed 's/^Requires: //' | sed 's/,//g'))
+            pkg_reqs=($(pip show $pkg | $SED -n '/^Requires:.*/{p}' | $SED 's/^Requires: //' | $SED 's/,//g'))
             echo "$pkg" >> "$tmp_req_file"
             for pkg_req in $pkg_reqs ; do
                 echo "$pkg_req" >> "$tmp_req_file"
@@ -320,10 +326,10 @@ function _vcfreeze()
         cat "$vd/$VC_VENV_REQFILE" >> $tmp_req_file
 
         _backup_if_exists "$vd/$VC_VENV_DEV_REQFILE"
-        pip freeze -q -r $tmp_req_file | sed -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/{//!p}' | sed '/^##/ d' >  "$vd/$VC_VENV_DEV_REQFILE"
+        pip freeze -q -r $tmp_req_file | $SED -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/{//!p}' | $SED '/^##/ d' >  "$vd/$VC_VENV_DEV_REQFILE"
 
         _backup_if_exists "$vd/$VC_VENV_REQFILE"
-        pip freeze -q -r $tmp_req_file | sed -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/!{p}'  | sed '/^##/ d' >  "$vd/$VC_VENV_REQFILE"
+        pip freeze -q -r $tmp_req_file | $SED -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/!{p}'  | $SED '/^##/ d' >  "$vd/$VC_VENV_REQFILE"
     else
         _backup_if_exists "$vd/$VC_VENV_REQFILE"
         pip freeze > "$vd/$VC_VENV_REQFILE"
@@ -522,9 +528,9 @@ function _vc_pkgskel()
         exit 1
     fi
 
-    local pkg_name_u=$(echo "$pkg_name" | sed -e 's/-/_/g') # underscored
-    local pkg_name_s="$(echo $pkg_name_u | sed -e 's/_/ /g')" # spaces
-    local pkg_name_title="$(echo $pkg_name_s | sed -e 's/\b\(.\)/\u\1/g')" # titled
+    local pkg_name_u=$(echo "$pkg_name" | $SED -e 's/-/_/g') # underscored
+    local pkg_name_s="$(echo $pkg_name_u | $SED -e 's/_/ /g')" # spaces
+    local pkg_name_title="$(echo $pkg_name_s | $SED -e 's/\b\(.\)/\u\1/g')" # titled
 
     mkdir -p "$pkg_name"
     mkdir -p "$pkg_name/tests"
