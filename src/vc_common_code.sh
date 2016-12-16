@@ -39,7 +39,7 @@ _backup_if_exists()
 }
 
 SED='sed'
-which gsed
+which gsed > /dev/null
 if [[ "$?" == "0" ]]; then
     SED='gsed'
 fi
