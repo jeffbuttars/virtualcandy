@@ -289,18 +289,6 @@ function _vcfreeze()
 {
     _vc_source_project_file
     local vd=$(vcfinddir)
-    local vdev=''
-
-    # Check if this is a dev freeze
-    if [[ -n $1 ]]; then
-        if [[ $1 == '-d' ]]; then
-            touch "$vd/$VC_VENV_DEV_REQFILE"
-            vdev='true'
-            shift
-        fi
-    elif [[ -f "$vd/$VC_VENV_DEV_REQFILE" ]]; then
-        vdev='true'
-    fi
 
     if [[ -z "$vd" ]]; then
         pr_fail "Unable to determine virtualenv project directory"
@@ -310,37 +298,10 @@ function _vcfreeze()
     # make sure virutalenv is activated
     vcactivate
 
-    # If this is a dev freeze, cat the package list to the dev req file.
-    if [[ -n $vdev ]]; then
-        local tmp_req_file="$(mktemp)"
-        echo "# vcdevfreeze:start" >> $tmp_req_file
-        cat "$vd/$VC_VENV_DEV_REQFILE" >> $tmp_req_file
-        for pkg in $@ ; do
-            pkg_reqs=($(pip show $pkg | $SED -n '/^Requires:.*/{p}' | $SED 's/^Requires: //' | $SED 's/,//g'))
-            echo "$pkg" >> "$tmp_req_file"
-            for pkg_req in $pkg_reqs ; do
-                echo "$pkg_req" >> "$tmp_req_file"
-            done
-        done
-        echo "# vcdevfreeze:stop" >> $tmp_req_file
-        cat "$vd/$VC_VENV_REQFILE" >> $tmp_req_file
+    _backup_if_exists "$vd/$VC_VENV_REQFILE"
+    pip freeze > "$vd/$VC_VENV_REQFILE"
 
-        _backup_if_exists "$vd/$VC_VENV_DEV_REQFILE"
-        pip freeze -q -r $tmp_req_file | $SED -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/{//!p}' | $SED '/^##/ d' >  "$vd/$VC_VENV_DEV_REQFILE"
-
-        _backup_if_exists "$vd/$VC_VENV_REQFILE"
-        pip freeze -q -r $tmp_req_file | $SED -n '/# vcdevfreeze:start/,/# vcdevfreeze:stop/!{p}'  | $SED '/^##/ d' >  "$vd/$VC_VENV_REQFILE"
-    else
-        _backup_if_exists "$vd/$VC_VENV_REQFILE"
-        pip freeze > "$vd/$VC_VENV_REQFILE"
-    fi
-
-    if [[ -f  "$vd/$VC_VENV_DEV_REQFILE" ]]; then
-        pr_info "Development requirements..."
-        cat "$vd/$VC_VENV_DEV_REQFILE"
-    fi
-
-    pr_info "\nProduction requirements..."
+    pr_info "\nFreezing requirements..."
     cat "$vd/$VC_VENV_REQFILE"
 }
 
@@ -442,21 +403,18 @@ _vcin()
     then
         pr_info "No packages given. Running install on requirements.txt"
         pip install -r "$(_vcfinddir)/$VC_VENV_REQFILE"
+
         if [[ $PYTHON_ENV != 'production' ]]; then
             if [[ -f  "$(_vcfinddir)/$VC_VENV_DEV_REQFILE"  ]]; then
                 pr_info "Found the development requirements file, installing it's packages..."
                 pip install -r "$(_vcfinddir)/$VC_VENV_DEV_REQFILE"
             fi
         fi
-        vcfreeze
-    elif [[ $1 == "-d" ]]
-    then
-        pr_info "Installing as development packages...\n"
-        freeze_params=($@)
-        shift
+    else
+        # Install whatever params are given
+        pip install $@
     fi
 
-    pip install $@
     vcfreeze $freeze_params
 }
 

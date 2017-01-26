@@ -58,16 +58,34 @@ up the directory tree until one or no [Virtualenv](http://www.virtualenv.org/en/
 
 ## Configuration
 
-Set the following environmental variables in your ~/.bashrc, before
+Consider setting the following environmental variables in your ~/.bashrc, before
 you source the virtualcandy.sh file, to configure VirtualCandy settings.
+
+## Dev requirements support (expirmental!)
+Support for managing separate dev packages is in the works! For the time being the support is very
+minimal and if a `dev-requirements.txt` file is found the `PYTHON_ENV` is not set to `production`
+the `dev-requirements.txt` packages will be installed by `vc-start`
 
 ### Available config variables
 
-* `VC_DEFAULT_VENV_NAME` Name of the Virtualenv directory, default is '.venv'
-* `VC_DEFAULT_VENV_REQFILE` Name of the requirements file, default is 'requirements.txt'
-* `VC_AUTO_ACTIVATION` Enable auto Virtualenv activation, default is true
-* `VC_PYTHON_EXE` Python executable to use for the Virtualenv, default is $(basename $(which python))
-* `VC_VIRTUALENV_EXE` Virtualenv command to use, default is virtualenv
+* (Optional) `PYTHON_ENV` If set to `production` packages in `dev-requirements.txt` (if present) won't be installed, Otherwise they will be.
+* (Optional) `VC_DEFAULT_VENV_NAME` Name of the Virtualenv directory, default is '.venv'
+* (Optional) `VC_DEFAULT_VENV_REQFILE` Name of the requirements file, default is 'requirements.txt'
+* (Optional) `VC_AUTO_ACTIVATION` Enable auto Virtualenv activation, default is true
+* (Optional) `VC_PYTHON_EXE` Python executable to use for the Virtualenv, default is $(basename $(which python)) with a bias to Python 3.X
+* (Optional) `VC_VIRTUALENV_EXE` Virtualenv command to use, default is virtualenv
+
+
+### Mac OS
+
+Virtualcandy relies on the GNU version of sed. Use homebrew to install `gnu-sed`
+(`brew install gnu-sed`) and make sure you add `/usr/local/bin` to your `PATH` variable.
+
+In your `~/.bashrc` or `~/.bash_profile` add the line:
+
+`export PATH=/usr/local/bin:$PATH`
+
+if it's not already present.
 
 
 ### Naming it:
