@@ -301,7 +301,7 @@ function _vcfreeze()
     _backup_if_exists "$vd/$VC_VENV_REQFILE"
     pip freeze > "$vd/$VC_VENV_REQFILE"
 
-    pr_info "\nProduction requirements..."
+    pr_info "\nFreezing requirements..."
     cat "$vd/$VC_VENV_REQFILE"
 }
 
@@ -410,11 +410,11 @@ _vcin()
                 pip install -r "$(_vcfinddir)/$VC_VENV_DEV_REQFILE"
             fi
         fi
-
-        vcfreeze
+    else
+        # Install whatever params are given
+        pip install $@
     fi
 
-    pip install $@
     vcfreeze $freeze_params
 }
 
