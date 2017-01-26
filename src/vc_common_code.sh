@@ -413,9 +413,8 @@ _vcin()
     else
         # Install whatever params are given
         pip install $@
+        vcfreeze
     fi
-
-    vcfreeze $freeze_params
 }
 
 _vcrem()
