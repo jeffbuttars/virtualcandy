@@ -85,42 +85,41 @@ function vcactivate()
     _vcactivate $@
 }
 
-function _vctags()
-{
-    # vloc=$(vcfindenv)
-    vdir=$(vcfinddir)
-    filelist="$vdir/"
+# function _vctags()
+# {
+#     # vloc=$(vcfindenv)
+#     vdir=$(vcfinddir)
+#     filelist="$vdir/"
 
-    touch $vdir/tags
-    ccmd="ctags --sort=yes --tag-relative=no -R --python-kinds=-i -o $vdir/tags"
+#     touch $vdir/tags
+#     ccmd="ctags --sort=yes --tag-relative=no -R --python-kinds=-i -o $vdir/tags"
 
-    if [[ "$#" != "0" ]]; then
-        filelist="$filelist $@"
-    fi
+#     if [[ "$#" != "0" ]]; then
+#         filelist="$filelist $@"
+#     fi
 
-    ccmd="$ccmd $filelist"
-    echo "Using command '$ccmd'"
-    eval $ccmd
+#     ccmd="$ccmd $filelist"
+#     echo "Using command '$ccmd'"
+#     eval $ccmd
 
-    res=$(which inotifywait)
-    VC_AUTOTAG_RUN=1
-    if [[ -n $res ]]; then
-        while [[ "$VC_AUTOTAG_RUN" == "1" ]]; do
-            inotifywait -e modify -r $filelist
-            nice -n 19 ionice -c 3 $ccmd
-            # Sleep a bit to keep from hitting the disk
-            # to hard during a mad editing burst from 
-            # those mad men coders
-            sleep 30
-        done
-    fi
-}
+#     res=$(which inotifywait)
+#     VC_AUTOTAG_RUN=1
+#     if [[ -n $res ]]; then
+#         while [[ "$VC_AUTOTAG_RUN" == "1" ]]; do
+#             inotifywait -e modify -r $filelist
+#             nice -n 19 ionice -c 3 $ccmd
+#             # Sleep a bit to keep from hitting the disk
+#             # to hard during a mad editing burst from 
+#             # those mad men coders
+#             sleep 30
+#         done
+#     fi
+# }
 
 function vctags()
 {
-    # _vctags
-    _vctags 1>/dev/null 2>&1 &
-    VC_VCTAGS_PID="$!"
+    $(_vctags $@) 1>/dev/null 2>&1 &
+    export VC_VCTAGS_PID="$!"
     echo "vctags: $VC_VCTAGS_PID"
 }
 

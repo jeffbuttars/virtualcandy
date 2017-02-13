@@ -100,7 +100,6 @@ _vc_source_project_file()
 
 function _vcfinddir()
 {
-    pr_info "_vcfinddir"
     cur=$PWD
     vname=$VC_VENV_NAME
     found='false'
@@ -219,7 +218,6 @@ function _vcstart()
 # This function is used by the vcpkgup function
 function _pip_update()
 {
-    # _vc_source_project_file
     reqf="requirements.txt"
 
     if [[ -n $VC_VENV_REQFILE ]]; then
@@ -281,7 +279,6 @@ function _vcpkgup()
 
 function _vcfindenv()
 {
-    pr_info "_vcfindenv"
     cur=$PWD
     local vdir=$(vcfinddir)
     local vname=$VC_VENV_NAME
@@ -296,7 +293,6 @@ function _vcfindenv()
 
 function _vcfreeze()
 {
-    # _vc_source_project_file
     local vd=$(vcfinddir)
 
     if [[ -z "$vd" ]]; then
@@ -316,15 +312,13 @@ function _vcfreeze()
 
 function _vcactivate()
 {
-    pr_info "_vcactivate"
-    # _vc_source_project_file
-
+    # It's likely we're activating in the project root where the `.vc_proj`
+    # file is, so we attempt to source it before going on.
+    _vc_source_project_file
     local vname=$VC_VENV_NAME
     vloc=''
 
-    pr_info "_vcactivate find env..."
     vloc=$(vcfindenv)
-    pr_info "_vcactivate found env $vloc"
 
 
     if [[ -n $vloc ]]; then
@@ -332,7 +326,7 @@ function _vcactivate()
         . "$vloc/bin/activate"
         # Source a second time, after we enter the virtualenv
         # There is no guarentee we sourced on the first call, and not necessary.
-        # But we _should_ source anytime things are activated.
+        # But we _should_ source anytime things are activated and we have a known venv dir.
         _vc_source_project_file
     else
         pr_fail "No virtualenv named $vname found."
@@ -342,11 +336,9 @@ function _vcactivate()
 
 function _vctags()
 {
-    # _vc_source_project_file
     vloc=$(vcfindenv)
     filelist="$vloc"
 
-    # ccmd="ctags --sort=yes --tag-relative=no -R --python-kinds=-i"
     ccmd="ctags --tag-relative=no -R --python-kinds=-i"
     pr_info "$ccmd"
     if [[ -n $vloc ]]; then
@@ -371,7 +363,7 @@ function _vctags()
             inotifywait -e modify -r $filelist
             nice -n 19 ionice -c 3 $ccmd
             # Sleep a bit to keep from hitting the disk
-            # to hard during a mad editing burst from 
+            # to hard during a mad editing burst from
             # those mad men coders
             sleep 30
         done
@@ -381,7 +373,6 @@ function _vctags()
 
 function _vcbundle()
 {
-    # _vc_source_project_file
     vcactivate
     vdir=$(vcfinddir)
     bname="${VC_VENV_NAME#.}.pybundle"
@@ -412,7 +403,6 @@ function _vcmod()
 
 _vcin()
 {
-    # _vc_source_project_file
     local freeze_params=''
 
     if [[ -z $1 ]]
@@ -441,7 +431,6 @@ _vcrem()
 
 function _vc_auto_activate()
 {
-    pr_info "_vc_auto_activate"
     # see if we're under a virtualenv.
     local c_venv="$(vcfindenv)"
 

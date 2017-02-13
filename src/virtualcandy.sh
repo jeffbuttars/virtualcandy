@@ -79,8 +79,10 @@ alias vca='vcactivate'
 
 function vctags()
 {
-    _vctags $@
-} #vctags
+    $(_vctags $@) 1>/dev/null 2>&1 &
+    export VC_VCTAGS_PID="$!"
+    echo "vctags: $VC_VCTAGS_PID"
+}
 
 function vcbundle()
 {
