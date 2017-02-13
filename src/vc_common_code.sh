@@ -76,25 +76,21 @@ fi
 
 _vc_source_project_file()
 {
-    pr_info "_vc_source_project_file VE:$VIRTUAL_ENV"
     # If VIRTUAL_ENV is set, source the proj file in that dir, if it exists.
     # Otherwise, look in the current dir.
-    local cur_wd="$PWD"
+    local vpf="$PWD/$VC_PROJECT_FILE"
 
     if [[ -n $VIRTUAL_ENV ]]; then
-        cd $(dirname $VIRTUAL_ENV)
+        vpf="$(dirname $VIRTUAL_ENV)/$VC_PROJECT_FILE"
     fi
 
-    if [[ -f "./$VC_PROJECT_FILE" ]]; then
-        pr_info "_vc_source_project_file sourcing $PWD/$VC_PROJECT_FILE"
+    if [[ -f "$vpf" ]]; then
         if [[ "$SHELL" == "bash" ]]; then
-            . ./"$VC_PROJECT_FILE"
+            . "$vpf"
         else
-            source ./"$VC_PROJECT_FILE"
+            source "$vpf"
         fi
     fi
-
-    cd "$cur_wd"
 }
 
 
