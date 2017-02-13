@@ -84,7 +84,6 @@ function vcactivate()
 {
     _vcactivate $@
 }
-alias -g vca='vcactivate'
 
 function _vctags()
 {

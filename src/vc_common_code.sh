@@ -18,7 +18,7 @@ TMPL_DIR="${THIS_DIR}/tmpl"
 
 pr_pass()
 {
-    echo -en "${KGRN}$*${KNRM}\n"
+    echo -en "${KGRN}$*${KNRM}\n" >&2
 }
 
 pr_fail()
@@ -28,7 +28,7 @@ pr_fail()
 
 pr_info()
 {
-    echo -en "${KBLU}$*${KNRM}\n"
+    echo -en "${KBLU}$*${KNRM}\n" >&2
 }
 
 _backup_if_exists()
@@ -76,20 +76,31 @@ fi
 
 _vc_source_project_file()
 {
-    # If a project file exists, source it.
-    if [[ -f "$VC_PROJECT_FILE" ]]; then
+    pr_info "_vc_source_project_file VE:$VIRTUAL_ENV"
+    # If VIRTUAL_ENV is set, source the proj file in that dir, if it exists.
+    # Otherwise, look in the current dir.
+    local cur_wd="$PWD"
+
+    if [[ -n $VIRTUAL_ENV ]]; then
+        cd $(dirname $VIRTUAL_ENV)
+    fi
+
+    if [[ -f "./$VC_PROJECT_FILE" ]]; then
+        pr_info "_vc_source_project_file sourcing $PWD/$VC_PROJECT_FILE"
         if [[ "$SHELL" == "bash" ]]; then
             . ./"$VC_PROJECT_FILE"
         else
             source ./"$VC_PROJECT_FILE"
         fi
     fi
+
+    cd "$cur_wd"
 }
 
 
 function _vcfinddir()
 {
-    _vc_source_project_file
+    pr_info "_vcfinddir"
     cur=$PWD
     vname=$VC_VENV_NAME
     found='false'
@@ -129,8 +140,8 @@ _vc_ignore()
 }
 
 
-# Start a new virtualenv, or 
-# rebuild on from a requirements.txt file.
+# Start a new virtualenv, or
+# rebuild one from a requirements.txt file.
 function _vcstart()
 {
     _vc_source_project_file
@@ -208,7 +219,7 @@ function _vcstart()
 # This function is used by the vcpkgup function
 function _pip_update()
 {
-    _vc_source_project_file
+    # _vc_source_project_file
     reqf="requirements.txt"
 
     if [[ -n $VC_VENV_REQFILE ]]; then
@@ -239,9 +250,8 @@ function _pip_update()
 # and re-freeze them
 function _vcpkgup()
 {
-    _vc_source_project_file
-    local vname=$VC_VENV_NAME
     local vdir=$(vcfinddir)
+    local vname=$VC_VENV_NAME
 
     reqlist="$vdir/$VC_VENV_REQFILE"
 
@@ -253,7 +263,6 @@ function _vcpkgup()
         done
         vcfreeze
     elif [[ -f $reqlist ]]; then
-        pr_info "Updating all in $reqlist"
         vcactivate
         pip_update $reqlist
         res=$?
@@ -272,10 +281,10 @@ function _vcpkgup()
 
 function _vcfindenv()
 {
-    _vc_source_project_file
+    pr_info "_vcfindenv"
     cur=$PWD
-    local vname=$VC_VENV_NAME
     local vdir=$(vcfinddir)
+    local vname=$VC_VENV_NAME
     local res=""
 
     if [[ -n $vdir ]]; then
@@ -287,7 +296,7 @@ function _vcfindenv()
 
 function _vcfreeze()
 {
-    _vc_source_project_file
+    # _vc_source_project_file
     local vd=$(vcfinddir)
 
     if [[ -z "$vd" ]]; then
@@ -307,16 +316,24 @@ function _vcfreeze()
 
 function _vcactivate()
 {
-    _vc_source_project_file
+    pr_info "_vcactivate"
+    # _vc_source_project_file
 
     local vname=$VC_VENV_NAME
     vloc=''
 
+    pr_info "_vcactivate find env..."
     vloc=$(vcfindenv)
+    pr_info "_vcactivate found env $vloc"
+
 
     if [[ -n $vloc ]]; then
         pr_pass "Activating ~${vloc#$HOME/}"
         . "$vloc/bin/activate"
+        # Source a second time, after we enter the virtualenv
+        # There is no guarentee we sourced on the first call, and not necessary.
+        # But we _should_ source anytime things are activated.
+        _vc_source_project_file
     else
         pr_fail "No virtualenv named $vname found."
     fi
@@ -325,7 +342,7 @@ function _vcactivate()
 
 function _vctags()
 {
-    _vc_source_project_file
+    # _vc_source_project_file
     vloc=$(vcfindenv)
     filelist="$vloc"
 
@@ -364,7 +381,7 @@ function _vctags()
 
 function _vcbundle()
 {
-    _vc_source_project_file
+    # _vc_source_project_file
     vcactivate
     vdir=$(vcfinddir)
     bname="${VC_VENV_NAME#.}.pybundle"
@@ -375,12 +392,11 @@ function _vcbundle()
 
 function _vcmod()
 {
-    _vc_source_project_file
     if [[ -z $1 ]]
     then
         pr_fail "$0: At least one module name is required."
         exit 1
-    fi 
+    fi
 
     for m in $@ ; do
         mkdir -p "$m"
@@ -396,7 +412,7 @@ function _vcmod()
 
 _vcin()
 {
-    _vc_source_project_file
+    # _vc_source_project_file
     local freeze_params=''
 
     if [[ -z $1 ]]
@@ -419,13 +435,13 @@ _vcin()
 
 _vcrem()
 {
-    _vc_source_project_file
     pip uninstall $@
     vcfreeze
 }
 
 function _vc_auto_activate()
 {
+    pr_info "_vc_auto_activate"
     # see if we're under a virtualenv.
     local c_venv="$(vcfindenv)"
 
@@ -437,8 +453,7 @@ function _vc_auto_activate()
             from="~/${VIRTUAL_ENV#$HOME/}"
             to="~/${c_venv#$HOME/}"
             if [ "$from" != "$to" ]; then
-                # Do we need to be this verbose?
-                # echo -e "Switching from '$from' to '$to'"
+                pr_info -e "Switching from '$from' to '$to'"
                 deactivate
             fi
         fi
