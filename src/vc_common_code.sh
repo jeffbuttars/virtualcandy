@@ -247,26 +247,32 @@ function _vcfreeze()
 
 function _vcactivate()
 {
-    # It's likely we're activating in the project root where the `.vc_proj`
-    # file is, so we attempt to source it before going on.
-    _vc_source_project_file
-    local vname=$VC_VENV_NAME
-    vloc=''
+    echo "_vcactivate"
 
-    vloc=$(vcfindenv)
+    # # It's likely we're activating in the project root where the `.vc_proj`
+    # # file is, so we attempt to source it before going on.
+    # _vc_source_project_file
+    # local vname=$VC_VENV_NAME
+    # vloc=''
 
+    # echo "_vcactivate vcfindenv"
+    # vloc=$(vcfindenv)
+    # echo "_vcactivate vcfindenv $vloc"
 
-    if [[ -n $vloc ]]; then
-        pr_pass "Activating ~${vloc#$HOME/}"
-        . "$vloc/bin/activate"
-        # Source a second time, after we enter the virtualenv
-        # There is no guarentee we sourced on the first call, and not necessary.
-        # But we _should_ source anytime things are activated and we have a known venv dir.
-        _vc_source_project_file
-    else
-        pr_fail "No virtualenv named $vname found."
-    fi
+    # if [[ -n $vloc ]]; then
+    #     # pr_pass "Activating ~${vloc#$HOME/}"
+    #     pr_pass "Activating"
+    #     . "$vloc/bin/activate"
+    #     # Source a second time, after we enter the virtualenv
+    #     # There is no guarentee we sourced on the first call, and not necessary.
+    #     # But we _should_ source anytime things are activated and we have a known venv dir.
+    #     echo "_vcactivate resourcing"
+    #     _vc_source_project_file
+    # else
+    #     pr_fail "No virtualenv named $vname found."
+    # fi
 
+    echo "_vcactivate done"
 }
 
 function _vcmod()
@@ -299,7 +305,7 @@ _vcin()
     then
         pr_info "Installing project packages..."
 
-        if [[ $PYTHON_ENV != 'production' ]]; then
+        if [[ $PYTHON_ENV == 'debug' ]]; then
             ARGS="$ARGS --dev"
             pr_info "\tInstalling project dev packages as well"
         fi

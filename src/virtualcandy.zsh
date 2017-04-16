@@ -107,7 +107,12 @@ function vcclean()
 # Automatically activate the current directories
 # Virtualenv is one exists
 if [[ "$VC_AUTO_ACTIVATION" == "true" ]]; then
-    chpwd_functions=(${chpwd_functions[@]} "vc_auto_activate")
+    # Don't add it more than once, check the array first.
+    if [[ ${chpwd_functions[(r)vc_auto_activate]} !=  "vc_auto_activate" ]]
+    then
+        chpwd_functions=(${chpwd_functions[@]} "vc_auto_activate")
+    fi
+
     # We want to run it now in case the terminal was started
     # with CWD in a virtuanenv directory
     vc_auto_activate
