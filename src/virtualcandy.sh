@@ -10,17 +10,6 @@
 export THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$THIS_DIR/vc_common_code.sh"
 
-function clean_on_exit()
-{
-    if [[ -n $VC_VCTAGS_PID ]]; then
-        kill $VC_VCTAGS_PID
-        wait $VC_VCTAGS_PID
-    fi
-    VC_AUTOTAG_RUN=0
-}
-
-trap "clean_on_exit" EXIT SIGINT SIGHUP SIGKILL SIGTERM
-
 function vcfinddir()
 {
     _vcfinddir
@@ -38,26 +27,11 @@ function vcstart()
 _vcstart
 }
 
-# A simple, and generic, pip update script.
-# For a given file containing a pkg lising
-# all packages are updated. If no args are given,
-# then a 'requirements.txt' file will be looked
-# for in the current directory. If the $VC_DEFAULT_VENV_REQFILE
-# variable is set, than that filename will be looked
-# for in the current directory.
-# If an argument is passed to the function, then
-# that file and path will be used.
-# This function is used by the vcpkgup function
-function pip_update()
-{
-    _pip_update $@
-}
-
 # Upgrade the nearest virtualenv packages
 # and re-freeze them
-function vcpkgup()
+function vcup()
 {
-    _vcpkgup $@
+    _vcup $@
 }
 
 function vcfindenv()
@@ -75,19 +49,6 @@ function vcactivate()
     _vcactivate $@
 }
 alias vca='vcactivate'
-
-
-function vctags()
-{
-    $(_vctags $@) 1>/dev/null 2>&1 &
-    export VC_VCTAGS_PID="$!"
-    echo "vctags: $VC_VCTAGS_PID"
-}
-
-function vcbundle()
-{
-    _vcbundle $@
-}
 
 function vcmod()
 {

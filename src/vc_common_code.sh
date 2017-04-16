@@ -16,6 +16,8 @@ KWHT="\x1B[37m"
 TMPL_DIR="${THIS_DIR}/tmpl"
 . "${THIS_DIR}/vc_config.sh"
 
+vcfreeze_py="python $THIS_DIR/vcfreeze.py"
+
 pr_pass()
 {
     echo -en "${KGRN}$*${KNRM}\n" >&2
@@ -29,13 +31,6 @@ pr_fail()
 pr_info()
 {
     echo -en "${KBLU}$*${KNRM}\n" >&2
-}
-
-_backup_if_exists()
-{
-    if [[ -f "$1" ]]; then
-        mv -f "$1"  "$(dirname $1)/.$(basename $1).bak"
-    fi
 }
 
 SED='sed'
@@ -67,11 +62,11 @@ then
     fi
 fi
 
-if [[ -z $VC_NEW_SHELL ]]
+if [[ -z $VC_VENV_NEW_SHELL ]]
 then
     # Highly recommend using 'yes', but the default behavior of
     # virtualenv is not use a new shell, so we mimick it's defaults.
-    VC_NEW_SHELL='no'
+    VC_VENV_NEW_SHELL='false'
 fi
 
 _vc_source_project_file()
@@ -141,108 +136,46 @@ function _vcstart()
 {
     _vc_source_project_file
 
-    if [[ "$VC_NEW_SHELL" != 'no' ]]; then
-        # get our current shell
-        C_SHELL="$SHELL"
+    # if [[ "$VC_VENV_NEW_SHELL" == 'true' ]]; then
+    #     # get our current shell
+    #     C_SHELL="$SHELL"
 
-        # Enter the new shell and start up the env.
-        $C_SHELL -c "$THIS_DIR/vc_new_shell.sh"
+    #     # Enter the new shell and start up the env.
+    #     $C_SHELL -c "$THIS_DIR/vc_new_shell.sh"
+    # fi
+
+    local vname=$VC_VENV_NAME
+
+    if [[ -e "$vname" ]]; then
+        pr_fail "A virtualenv already exists here, bailing out!"
+        exit 1
     fi
-
-    vname=$VC_VENV_NAME
 
     # Create the virtualenv.
     pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname"
     $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname
     . $vname/bin/activate
 
-    # If there is a requriemnts file, install it's packages.
-    if [[ -f requirements.txt ]]; then
-        _vcin
-    fi
+    # install pipenv!
+    pr_info "Installing pipenv"
+    pip install pipenv
 
-    # Treat any parameters as packages to install.
-    # In the case of command line packages given for install
-    # we'll also run freeze after word.
+   # Initialize pipenv and install any packages we track
+    _vcin
     if [[ -n $1 ]]; then
-        for pkg in $@ ; do
-            err_out_file="/tmp/${pkg}_errs_$$"
-            pr_info "pip install $pkg"
-            eout=$(pip install $pkg 2>&1)
-            res="$?"
-            if [[ "0" != "$res" ]]; then
-                pr_fail "pip install $pkg had a failure, $res"
-                echo "$eout" > $err_out_file
-            fi
-        done
-
-        vcfreeze
+        # Install any additional packages given with the command
+        _vcin $@
     fi
 
-    # If there is no requrirements.txt, create one from the
-    # current environment.
-    if [[ ! -f requirements.txt ]]; then
-        vcfreeze
-    fi
-
-    # Create a .vc_proj file if one doesn't exist
-    if [[ ! -f $VC_PROJECT_FILE ]]; then
-       _vc_proj > $VC_PROJECT_FILE
-    fi
-
-    # If we had install errors, display them.
-    for pkg in $@ ; do
-        err_out_file="/tmp/${pkg}_errs_$$"
-        if [[ -f $err_out_file ]]; then
-            pr_fail "An error occurred while installing ${pkg}"
-            pr_info "See file $err_out_file for details, error contents:\n"
-            pr_info "$(cat $err_out_file)"
-            echo
-        fi
-    done
-}
-
-# A simple, and generic, pip update script.
-# For a given file containing a pkg lising
-# all packages are updated. If no args are given,
-# then a 'requirements.txt' file will be looked
-# for in the current directory. If the $VC_VENV_REQFILE
-# variable is set, than that filename will be looked
-# for in the current directory.
-# If an argument is passed to the function, then
-# that file and path will be used.
-# This function is used by the vcpkgup function
-function _pip_update()
-{
-    reqf="requirements.txt"
-
-    if [[ -n $VC_VENV_REQFILE ]]; then
-        reqf="$VC_VENV_REQFILE"
-    fi
-
-    if [[ -n $1 ]]; then
-        reqf="$1"
-    fi
-
-    res=0
-    if [[ -f $reqf ]]; then
-        tfile="/tmp/pkglist_$RANDOM.txt"
-        pr_info "$tfile"
-        cat $reqf | awk -F '==' '{print $1}' > $tfile
-        pip install --upgrade -r $tfile
-        res=$?
-        rm -f $tfile
-    else
-        pr_fail "Unable to find package list file: $reqf"
-        res=1
-    fi
-
-    echo $res
+   # Create a .vc_proj file if one doesn't exist
+   if [[ ! -f $VC_PROJECT_FILE ]]; then
+      _vc_proj > $VC_PROJECT_FILE
+   fi
 }
 
 # Upgrade the nearest virtualenv packages
 # and re-freeze them
-function _vcpkgup()
+function _vcup()
 {
     local vdir=$(vcfinddir)
     local vname=$VC_VENV_NAME
@@ -250,24 +183,13 @@ function _vcpkgup()
     reqlist="$vdir/$VC_VENV_REQFILE"
 
     if [ ! -z $1 ]; then
-        pr_info "Updating $@"
-        for pkg in "$@" ; do
-            pip install -U --no-deps $pkg
-            res=$?
-        done
-        vcfreeze
-    elif [[ -f $reqlist ]]; then
-        vcactivate
-        pip_update $reqlist
-        res=$?
-        if [[ "$res" == 0 || "$res" == "" ]]; then
-            vcfreeze
-        else
-            pr_fail "Bad exit status from pip_update, not freezing the package list."
-        fi
-    else
-        pr_fail "No requirements.txt file found!"
+        pr_fail "I can't upgrade individual packages at this time :("
         res=0
+    else
+        vcactivate
+        pipenv uninstall --all
+        vcin
+        res="$?"
     fi
 
     return $res
@@ -298,12 +220,29 @@ function _vcfreeze()
 
     # make sure virutalenv is activated
     vcactivate
+    local pipfile="$(pipenv --bare --where).lock"
 
-    _backup_if_exists "$vd/$VC_VENV_REQFILE"
-    pip freeze > "$vd/$VC_VENV_REQFILE"
+    if [[ ! -f $pipfile ]]; then
+        pr_fail "No $pipfile present, can only freeze lock packages."
+        pr_fail "Trying running the 'vcin' command first to lock the packages."
+        return
+    fi
+
+    # _backup_if_exists "$vd/$VC_VENV_REQFILE"
+
+    eval $vcfreeze_py $pipfile >! "$vd/${VC_VENV_REQFILE}.new"
+    eval $vcfreeze_py $pipfile --dev >! "$vd/dev-${VC_VENV_REQFILE}.new"
+
+    rm -f "$vd/${VC_VENV_REQFILE}" "$vd/dev-${VC_VENV_REQFILE}"
+
+    mv -f "$vd/${VC_VENV_REQFILE}.new" "$vd/${VC_VENV_REQFILE}"
+    mv -f "$vd/dev-${VC_VENV_REQFILE}.new" "$vd/dev-${VC_VENV_REQFILE}"
 
     pr_info "\nFreezing requirements..."
     cat "$vd/$VC_VENV_REQFILE"
+
+    pr_info "\nFreezing devlopment requirements..."
+    cat "$vd/dev-${VC_VENV_REQFILE}"
 }
 
 function _vcactivate()
@@ -330,53 +269,6 @@ function _vcactivate()
 
 }
 
-function _vctags()
-{
-    vloc=$(vcfindenv)
-    filelist="$vloc"
-
-    ccmd="ctags --tag-relative=no -R --python-kinds=-i"
-    pr_info "$ccmd"
-    if [[ -n $vloc ]]; then
-        pr_info "Making tags with $vloc"
-        filelist="$vloc"
-    fi
-
-    if [[ "$#" == "0" ]]; then
-        filelist="$filelist *"
-    else
-        filelist="$filelist $@"
-    fi
-
-    ccmd="$ccmd $filelist"
-    pr_info "Using command $ccmd"
-    $ccmd
-
-    res=$(which inotifywait)
-    VC_AUTOTAG_RUN=1
-    if [[ -n $res ]]; then
-        while [[ "$VC_AUTOTAG_RUN" == "1" ]]; do
-            inotifywait -e modify -r $filelist
-            nice -n 19 ionice -c 3 $ccmd
-            # Sleep a bit to keep from hitting the disk
-            # to hard during a mad editing burst from
-            # those mad men coders
-            sleep 30
-        done
-    fi
-}
-
-
-function _vcbundle()
-{
-    vcactivate
-    vdir=$(vcfinddir)
-    bname="${VC_VENV_NAME#.}.pybundle"
-    pr_info "Creating bundle $bname"
-    pip bundle "$bname" -r "$vdir/$VC_VENV_REQFILE"
-}
-
-
 function _vcmod()
 {
     if [[ -z $1 ]]
@@ -399,29 +291,30 @@ function _vcmod()
 
 _vcin()
 {
+    _vc_source_project_file
     local freeze_params=''
+    local ARGS='install'
 
     if [[ -z $1 ]]
     then
-        pr_info "No packages given. Running install on requirements.txt"
-        pip install -r "$(_vcfinddir)/$VC_VENV_REQFILE"
+        pr_info "Installing project packages..."
 
         if [[ $PYTHON_ENV != 'production' ]]; then
-            if [[ -f  "$(_vcfinddir)/$VC_VENV_DEV_REQFILE"  ]]; then
-                pr_info "Found the development requirements file, installing it's packages..."
-                pip install -r "$(_vcfinddir)/$VC_VENV_DEV_REQFILE"
-            fi
+            ARGS="$ARGS --dev"
+            pr_info "\tInstalling project dev packages as well"
         fi
     else
         # Install whatever params are given
-        pip install $@
-        vcfreeze
+        ARGS="$ARGS --lock $@"
     fi
+
+    eval pipenv $ARGS
+    vcfreeze
 }
 
 _vcrem()
 {
-    pip uninstall $@
+    pipenv uninstall --lock $@
     vcfreeze
 }
 
@@ -438,7 +331,7 @@ function _vc_auto_activate()
             from="~/${VIRTUAL_ENV#$HOME/}"
             to="~/${c_venv#$HOME/}"
             if [ "$from" != "$to" ]; then
-                pr_info -e "Switching from '$from' to '$to'"
+                pr_info "Switching from '$from' to '$to'"
                 deactivate
             fi
         fi
@@ -536,13 +429,16 @@ function _vc_proj()
     echo "# VC_PYTHON_EXE The python executable name to use"
     echo "VC_PYTHON_EXE='$VC_PYTHON_EXE'"
     echo ""
-    echo "# VC_VENV_NAME The name of the virtualenv directory"
-    echo "VC_VENV_NAME='$VC_VENV_NAME'"
-    echo ""
-    echo "# VC_VENV_REQFILE The name of the requirements file to use for packaging"
+    echo "# VC_VENV_REQFILE The name of the requirements file to use for standard packaging"
     echo "VC_VENV_REQFILE='$VC_VENV_REQFILE'"
     echo ""
     echo "# VC_VIRTUALENV_EXE The name of the virtualenv executable to use"
     echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"
+    echo ""
+    echo "# _PIPENV_COMPLETE Create the virtualenv directory in the project root"
+    echo "_PIPENV_COMPLETE='$VC_VENV_NAME'"
+    echo ""
+    echo "# VC_VENV_NEW_SHELL use `pipenv shell` to enter the virtualenv in a new shell"
+    echo "# VC_VENV_NEW_SHELL='true'"
 }
 

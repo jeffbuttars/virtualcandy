@@ -1,9 +1,5 @@
 
-# Name of the virtualenv directory
-if [[ -z $VC_VENV_NAME ]]
-then
-    export VC_VENV_NAME='.venv'
-fi
+export VC_VENV_NAME='.venv'
 
 # Requirements filename
 if [[ -z $VC_VENV_REQFILE ]]
