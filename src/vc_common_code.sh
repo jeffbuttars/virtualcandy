@@ -16,6 +16,8 @@ KWHT="\x1B[37m"
 TMPL_DIR="${THIS_DIR}/tmpl"
 . "${THIS_DIR}/vc_config.sh"
 
+# export _VC_DEF_CONFIG="${THIS_DIR}/vc_config.sh"
+
 vcfreeze_py="python $THIS_DIR/vcfreeze.py"
 
 pr_pass()
@@ -34,7 +36,7 @@ pr_info()
 }
 
 SED='sed'
-which gsed > /dev/null
+which gsed > /dev/null 2>&1
 if [[ "$?" == "0" ]]; then
     SED='gsed'
 fi
@@ -233,10 +235,13 @@ function _vcfreeze()
     eval $vcfreeze_py $pipfile >! "$vd/${VC_VENV_REQFILE}.new"
     eval $vcfreeze_py $pipfile --dev >! "$vd/dev-${VC_VENV_REQFILE}.new"
 
-    rm -f "$vd/${VC_VENV_REQFILE}" "$vd/dev-${VC_VENV_REQFILE}"
+    if [[ -f "$vd/${VC_VENV_REQFILE}.new"   ]]; then
+        mv -f "$vd/${VC_VENV_REQFILE}.new" "$vd/${VC_VENV_REQFILE}"
+    fi
 
-    mv -f "$vd/${VC_VENV_REQFILE}.new" "$vd/${VC_VENV_REQFILE}"
-    mv -f "$vd/dev-${VC_VENV_REQFILE}.new" "$vd/dev-${VC_VENV_REQFILE}"
+    if [[ -f "$vd/dev-${VC_VENV_REQFILE}.new" ]]; then
+        mv -f "$vd/dev-${VC_VENV_REQFILE}.new" "$vd/dev-${VC_VENV_REQFILE}"
+    fi
 
     pr_info "\nFreezing requirements..."
     cat "$vd/$VC_VENV_REQFILE"
@@ -430,10 +435,9 @@ function _vc_proj()
     echo "# VC_VIRTUALENV_EXE The name of the virtualenv executable to use"
     echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"
     echo ""
-    echo "# _PIPENV_COMPLETE Create the virtualenv directory in the project root"
-    echo "_PIPENV_COMPLETE='$VC_VENV_NAME'"
-    echo ""
     echo "# VC_VENV_NEW_SHELL use `pipenv shell` to enter the virtualenv in a new shell"
     echo "# VC_VENV_NEW_SHELL='true'"
+    echo ""
+    echo "# PIPENV_VENV_IN_PROJECT"
+    echo "export PIPENV_VENV_IN_PROJECT=$VC_VENV_NAME"
 }
-

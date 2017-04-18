@@ -120,4 +120,14 @@ fi
 
 zshexit_functions=(${zshexit_functions[@]} "_vc_exit")
 
+
+#compdef pipenv
+_pipenv() {
+  eval $(env COMMANDLINE="${words[1,$CURRENT]}" _PIPENV_COMPLETE=complete-zsh  pipenv)
+}
+if [[ "$(basename ${(%):-%x})" != "_pipenv" ]]; then
+  autoload -U compinit && compinit
+  compdef _pipenv pipenv
+fi
+
 # vim:set ft=zsh:

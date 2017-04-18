@@ -19,6 +19,10 @@ then
     export VC_AUTO_ACTIVATION=true
 fi
 
+if [[ -z $PIPENV_VENV_IN_PROJECT ]]; then
+    export PIPENV_VENV_IN_PROJECT="$VC_VENV_NAME"
+fi
+
 # Define which python to use
 if [[ -z $VC_PYTHON_EXE ]]
 then
