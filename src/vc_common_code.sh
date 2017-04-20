@@ -292,7 +292,6 @@ function _vcmod()
 _vcin()
 {
     _vc_source_project_file
-    local freeze_params=''
     local ARGS='install'
 
     if [[ -z $1 ]]

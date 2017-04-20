@@ -3,18 +3,13 @@
 
 import sys
 import json
+import argparse
 
-def main():
-    pkg_key = 'default'
 
-    if len(sys.argv) < 2:
-        print("You must provide a Pipfile path!")
-        sys.exit(1)
+def freeze_list(fname, dev=False):
+    pkg_key = 'default' if not dev else 'develop'
 
-    if len(sys.argv) > 2 and sys.argv[2] == '--dev':
-        pkg_key = 'develop'
-
-    with open(sys.argv[1]) as fd:
+    with open(fname) as fd:
         pf = json.load(fd)
         pkgs = pf.get(pkg_key)
         if not pkgs:
@@ -23,5 +18,24 @@ def main():
         for k, v in pkgs.items():
             print("%s%s" % (k, v.get('version')))
 
+
+def main(args):
+    if args.freeze:
+        freeze_list(args.obj_name[0], args.dev)
+
+
 if __name__ == '__main__':
-    main()
+    parser = argparse.ArgumentParser(description='Virtual Candy packaging helper')
+    parser.add_argument('--dev', action='store_true',
+                        help='Apply operation as development packaging'
+                        )
+    parser.add_argument('--freeze', action='store_true',
+                        help='Create a pip freeze list from the lock file.'
+                        )
+    parser.add_argument('--type', action='store_true',
+                        help='check if package is default, develop or not in the lock file'
+                        )
+    parser.add_argument('obj_name', nargs=argparse.ZERO_OR_MORE)
+
+    print(parser.parse_args())
+    main(parser.parse_args())
