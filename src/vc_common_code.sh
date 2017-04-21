@@ -347,7 +347,7 @@ _vcin()
 
 _vcrem()
 {
-    pipenv uninstall $@
+    eval pipenv uninstall $@
     pipenv lock
     vcfreeze
 }
