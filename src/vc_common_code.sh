@@ -71,6 +71,13 @@ then
     VC_VENV_NEW_SHELL='false'
 fi
 
+_vcdeactivate()
+{
+    if [[ -n $VIRTUAL_ENV ]]; then
+        deactivate
+    fi
+}
+
 _vc_source_project_file()
 {
     # If VIRTUAL_ENV is set, source the proj file in that dir, if it exists.
@@ -164,16 +171,18 @@ function _vcstart()
     pip install pipenv
 
     # Do a little dance to get the virtualenv pipenv into our path
-    deactivate
+    _vcdeactivate
     pr_info "Deactivating after pipenv install..."
     . $vname/bin/activate
     pr_info "Re-Activating after pipenv install, $(which pipenv)"
 
    # Initialize pipenv and install any packages we track
-    vcin
+    _install
     if [[ -n $1 ]]; then
-        # Install any additional packages given with the command
-        vcin $@
+        # Install any additional packages given with the command,
+        # then lock and freeze them
+        _install $@
+        vcfreeze 'lock'
     fi
 
    # Create a .vc_proj file if one doesn't exist
@@ -210,15 +219,20 @@ function _vcup()
             fi
         done
 
-        eval pipenv uninstall $def_pkgs $dev_pkgs
-
         if [[ -n $def_pkgs ]]; then
-            pr_info "Updating production packages: $def_pkgs "
+            pr_info "Removing production packages: $def_pkgs "
+            eval pipenv uninstall $def_pkgs
+
+            pr_pass "Updating production packages: $def_pkgs "
             eval pipenv install $def_pkgs
         fi
 
         if [[ -n $dev_pkgs ]]; then
-            pr_info "Updating development packages: $dev_pkgs "
+            pr_info "Removing development packages : $dev_pkgs"
+            pr_info "(NOTE: removing development packages with pipenv has been problematic)"
+            eval pipenv uninstall $dev_pkgs
+
+            pr_pass "Updating development packages: $dev_pkgs "
             eval pipenv install --dev $dev_pkgs
         fi
 
@@ -227,8 +241,7 @@ function _vcup()
         pipenv update --dev
     fi
 
-    pipenv lock
-    vcfreeze
+    vcfreeze 'lock'
 
     res="$?"
     return $res
@@ -259,6 +272,11 @@ function _vcfreeze()
 
     # make sure virutalenv is activated
     vcactivate
+
+    if [[ $1 == "lock" ]]; then
+        pipenv lock
+    fi
+
     local pipfile="$(pipenv --bare --where).lock"
 
     if [[ ! -f $pipfile ]]; then
@@ -326,37 +344,42 @@ function _vcmod()
     done
 }
 
-_vcin()
+# Private func, installs pkgs only, no freeze or locking.
+_install()
 {
     _vc_source_project_file
-    local ARGS='install'
-    local freeze_it=''
+    local args='install'
 
     if [[ -z $1 ]]
     then
         pr_info "Installing project packages..."
 
         if [[ $PYTHON_ENV == 'debug' ]]; then
-            ARGS="$ARGS --dev"
+            args="$args --dev"
             pr_info "\tInstalling project dev packages as well"
         fi
     else
         # Install whatever params are given
-        ARGS="$ARGS --lock $@"
-        freeze_it='true'
+        args="$args $@"
     fi
 
-    eval pipenv $ARGS
-    if [[ $freeze_it == 'true' ]]; then
-        vcfreeze
+    eval pipenv $args
+}
+
+_vcin()
+{
+    _install $@
+
+    # Only lock and freeze if params, package names, were given
+    if [[ -n $1 ]]; then
+        vcfreeze 'lock'
     fi
 }
 
 _vcrem()
 {
     eval pipenv uninstall $@
-    pipenv lock
-    vcfreeze
+    vcfreeze 'lock'
 }
 
 function _vc_auto_activate()
@@ -373,7 +396,7 @@ function _vc_auto_activate()
             to="~/${c_venv#$HOME/}"
             if [ "$from" != "$to" ]; then
                 pr_info "Switching from '$from' to '$to'"
-                deactivate
+               _vcdeactivate
             fi
         fi
 
@@ -383,7 +406,7 @@ function _vc_auto_activate()
     elif [[ -n $VIRTUAL_ENV ]]; then
         # We've left an environment, so deactivate.
         pr_info "Deactivating ~/${VIRTUAL_ENV#$HOME/}\n"
-        deactivate
+       _vcdeactivate
     fi
 }
 
