@@ -18,7 +18,7 @@ TMPL_DIR="${THIS_DIR}/tmpl"
 
 # export _VC_DEF_CONFIG="${THIS_DIR}/vc_config.sh"
 
-vcfreeze_py="python $THIS_DIR/vcfreeze.py"
+vcpkgs_py="python $THIS_DIR/vcpkgs.py"
 
 pr_pass()
 {
@@ -184,16 +184,46 @@ function _vcup()
 
     reqlist="$vdir/$VC_VENV_REQFILE"
 
-    if [ ! -z $1 ]; then
-        pr_fail "I can't upgrade individual packages at this time :("
-        res=0
+    if [ -n $1 ]; then
+        local def_pkgs=''
+        local dev_pkgs=''
+        local pipfile="$(pipenv --bare --where).lock"
+
+        for pkg in $@ ; do
+            local has_pkg=$(eval "$vcpkgs_py --lock-file $pipfile info $pkg")
+            if [[ -z $has_pkg ]]; then
+                pr_fail "The package '$pkg' is not installed, bailing out."
+                return 1
+            fi
+
+            if [[ $has_pkg == 'develop' ]]; then
+                dev_pkgs="$dev_pkgs $pkg"
+            else
+                def_pkgs="$def_pkgs $pkg"
+            fi
+        done
+
+        eval pipenv uninstall $def_pkgs $dev_pkgs
+
+        if [[ -n $def_pkgs ]]; then
+            pr_info "Updating production packages: $def_pkgs "
+            eval pipenv install $def_pkgs
+        fi
+
+        if [[ -n $dev_pkgs ]]; then
+            pr_info "Updating development packages: $dev_pkgs "
+            eval pipenv install --dev $dev_pkgs
+        fi
+
     else
-        vcactivate
-        pipenv uninstall --all
-        vcin
-        res="$?"
+        pipenv update
+        pipenv update --dev
     fi
 
+    pipenv lock
+    vcfreeze
+
+    res="$?"
     return $res
 }
 
@@ -232,8 +262,8 @@ function _vcfreeze()
 
     # _backup_if_exists "$vd/$VC_VENV_REQFILE"
 
-    eval $vcfreeze_py $pipfile >! "$vd/${VC_VENV_REQFILE}.new"
-    eval $vcfreeze_py $pipfile --dev >! "$vd/dev-${VC_VENV_REQFILE}.new"
+    eval $vcpkgs_py --lock-file $pipfile freeze >! "$vd/${VC_VENV_REQFILE}.new"
+    eval $vcpkgs_py --lock-file $pipfile --dev freeze >! "$vd/dev-${VC_VENV_REQFILE}.new"
 
     if [[ -f "$vd/${VC_VENV_REQFILE}.new"   ]]; then
         mv -f "$vd/${VC_VENV_REQFILE}.new" "$vd/${VC_VENV_REQFILE}"
@@ -293,6 +323,7 @@ _vcin()
 {
     _vc_source_project_file
     local ARGS='install'
+    local freeze_it=''
 
     if [[ -z $1 ]]
     then
@@ -305,15 +336,19 @@ _vcin()
     else
         # Install whatever params are given
         ARGS="$ARGS --lock $@"
+        freeze_it='true'
     fi
 
     eval pipenv $ARGS
-    vcfreeze
+    if [[ $freeze_it == 'true' ]]; then
+        vcfreeze
+    fi
 }
 
 _vcrem()
 {
-    pipenv uninstall --lock $@
+    pipenv uninstall $@
+    pipenv lock
     vcfreeze
 }
 

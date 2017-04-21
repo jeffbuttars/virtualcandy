@@ -17,7 +17,12 @@ class PipLock(object):
         self._dev_key = 'develop'
 
     def _to_freeeze_list(self, pkgs):
-        return ["%s%s" % (k, v.get('version')) for k, v in pkgs.items()]
+        res = []
+        for k, v in pkgs.items():
+            if isinstance(v, dict) and v.get('version'):
+                res.append("%s%s" % (k, v.get('version')))
+
+        return res
 
     def has(self, pkg_name):
         return self.has_def(pkg_name) or self.has_dev(pkg_name)
