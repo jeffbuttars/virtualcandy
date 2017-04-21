@@ -18,7 +18,7 @@ TMPL_DIR="${THIS_DIR}/tmpl"
 
 # export _VC_DEF_CONFIG="${THIS_DIR}/vc_config.sh"
 
-vcpkgs_py="python $THIS_DIR/vcpkgs.py"
+vcpkgs_py="vcpkgs"
 
 pr_pass()
 {
