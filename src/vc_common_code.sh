@@ -156,17 +156,24 @@ function _vcstart()
     # Create the virtualenv.
     pr_info "$VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname"
     $VC_VIRTUALENV_EXE --python=$VC_PYTHON_EXE $vname
+    pr_info "Pre-Activating..."
     . $vname/bin/activate
 
     # install pipenv!
     pr_info "Installing pipenv"
     pip install pipenv
 
+    # Do a little dance to get the virtualenv pipenv into our path
+    deactivate
+    pr_info "Deactivating after pipenv install..."
+    . $vname/bin/activate
+    pr_info "Re-Activating after pipenv install, $(which pipenv)"
+
    # Initialize pipenv and install any packages we track
-    _vcin
+    vcin
     if [[ -n $1 ]]; then
         # Install any additional packages given with the command
-        _vcin $@
+        vcin $@
     fi
 
    # Create a .vc_proj file if one doesn't exist
