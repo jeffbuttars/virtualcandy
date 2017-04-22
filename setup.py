@@ -5,7 +5,7 @@ import os
 import sys
 #  from pip.req import parse_requirements
 #  from pip.download import PipSession
-from setuptools import setup, find_packages
+from setuptools import setup
 
 THIS_DIR = os.path.basename(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(THIS_DIR, 'virtualcandy'))
@@ -31,7 +31,7 @@ import virtualcandy
 setup(
     name="virtualcandy",
     version=virtualcandy.__version__,
-    packages=find_packages(),
+    packages=['virtualcandy'],
     author="Jeff Buttars",
     author_email="jeff@jeffbuttars.com",
     description="Virtualcandy description",
@@ -52,13 +52,14 @@ setup(
     #  install_requires=get_requires() + []
 
     scripts=['virtualcandy/vcpkgs'],
+    package_data={'virtualcandy': ['lib/*', 'lib/tmpl/*']},
 
-    data_files=[
-        (
-            '/etc/profile.d/virtualcandy',
-            ['virtualcandy/vc_common_code.sh', 'virtualcandy/vc_config.sh',
-             'virtualcandy/virtualcandy.sh', 'virtualcandy/virtualcandy.zsh'
-             ]
-        )
-    ]
+    #  data_files=[
+    #      (
+    #          '/etc/profile.d/virtualcandy',
+    #          ['virtualcandy/vc_common_code.sh', 'virtualcandy/vc_config.sh',
+    #           'virtualcandy/virtualcandy.sh', 'virtualcandy/virtualcandy.zsh'
+    #           ]
+    #      )
+    #  ]
 )

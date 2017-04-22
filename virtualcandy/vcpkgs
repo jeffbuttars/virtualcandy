@@ -2,6 +2,7 @@
 # encoding: utf-8
 
 import os
+import re
 import sys
 import json
 import argparse
@@ -75,9 +76,45 @@ def pkgs(args, pl):
     print(res)
 
 
+def install(args, pl):
+    from distutils.sysconfig import get_python_lib
+    plibs = os.path.join(get_python_lib(), 'virtualcandy', 'lib')
+
+    # Kind of stupid and only supports zsh or bash
+    shell = os.path.basename(os.environ.get('SHELL'))
+
+    ext = 'sh'
+    if args.zsh:
+        ext = 'zsh'
+    elif not args.sh:
+        shell = os.path.basename(os.environ.get('SHELL'))
+        if shell == 'zsh':
+            ext = shell
+
+    incl = os.path.join(plibs, f'virtualcandy.{ext}')
+
+    home = os.path.expanduser('~')
+    src = os.path.join(home, '.bashrc')
+    if ext == 'zsh':
+        src = os.path.join(home, '.zshrc')
+
+    shell_snip = (
+        f'\n# Add the following 3 lines into your {src} file\n'
+        f'if [[ -f "{incl}" ]]; then\n'
+        f'    . "{incl}"\n'
+        'fi\n'
+    )
+
+    print(shell_snip)
+
+
 def main(parser):
     args = parser.parse_args()
-    pl = PipLock(fd=args.lock_file)
+
+    try:
+        pl = PipLock(fd=args.lock_file)
+    except Exception:
+        pl = None
 
     if hasattr(args, 'func'):
         args.func(args, pl)
@@ -117,5 +154,19 @@ if __name__ == '__main__':
         help="The name of the package to look for info on."
     )
     parser_info.set_defaults(func=pkgs)
+
+    parser_install = subparsers.add_parser(
+        'install',
+        help="Install the shell code needed for a per user install."
+    )
+    parser_install.add_argument(
+        '--sh', action='store_true',
+        help="Install for bash shell"
+    )
+    parser_install.add_argument(
+        '--zsh', action='store_true',
+        help="Install for zsh shell"
+    )
+    parser_install.set_defaults(func=install)
 
     main(parser)
