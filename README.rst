@@ -35,16 +35,17 @@ Installation
 ============
 
 Just clone the repo. I use a ~/.virtualcandy directory to hold the code, but the
-location doesn't matter much.::
+location doesn't matter much.:: sh
 
-    cd; git clone git://github.com/jeffbuttars/virtualcandy.git .virtualcandy 
+    cd
+    git clone git://github.com/jeffbuttars/virtualcandy.git .virtualcandy
 
 To enable VirtualCandy, you just source it in your ~/.bashrc file. Add the
-following line into your ~/.bashrc file::
+following line into your ~/.bashrc file:: sh
 
     . ~/.virtualcandy/src/virtualcandy.sh
 
-or add the following line to your ~/.zshrc, as appropriate::
+or add the following line to your ~/.zshrc, as appropriate:: bash
 
     source ~/.virtualcandy/src/virtualcandy.zsh
 
@@ -188,7 +189,7 @@ boilerplate code for `Makefile`, `setup.py` and `pkg_name.__init__.py`:: sh
 
     vcpkgskel <package-name>
 
-Will create a folder structure:: sh
+Will create a folder structure::
 
     <package-name>
       LICENSE.txt
