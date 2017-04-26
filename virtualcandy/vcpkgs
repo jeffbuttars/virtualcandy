@@ -105,6 +105,9 @@ def install(args, pl):
         'fi\n'
     )
 
+    if args.global:
+            
+
     print(shell_snip)
 
 
@@ -166,6 +169,14 @@ if __name__ == '__main__':
     parser_install.add_argument(
         '--zsh', action='store_true',
         help="Install for zsh shell"
+    )
+    parser_install.add_argument(
+        '--global', action='store_true',
+        help=(
+            "Install globaly by creating /etc/profile.d/virtualcandy.sh, "
+            "must by done with proper permsissions, \n"
+            "\tex: `sudo dpkgs install --global`"
+        )
     )
     parser_install.set_defaults(func=install)
 
