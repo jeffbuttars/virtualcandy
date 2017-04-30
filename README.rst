@@ -1,12 +1,17 @@
-============
 virtualcandy
 ============
 
-Smart Shell Integration for Python_'s Virtualenv_ with Pipenv_
+Smart shell integration for Python_'s Virtualenv_ with Pipenv_
+-----------------------------------------------------------------
 
 
-This not an attempt to create another, or even better, set of wrapper functions
-for Virtualenv_. This is a set of wrappers that I've built, like, and use
+Virtualcandy provides Virtualenv_ integration with your Bash or Zsh shell
+that provides automatic activation and decativation of Virtualenv_ as you
+navigate between Python_ projects that utilize Virtualenv_. Virtualcandy
+also provides extra utilities to make working with Pip, Virtualenv_ and Pipenv_
+a more cohesive experience.
+
+This is a set of shell wrappers that I've built, like, and use
 everyday. It is oppinionated but aims to be configurable.
 
 * Installation_
