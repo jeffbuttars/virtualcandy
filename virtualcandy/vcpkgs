@@ -6,7 +6,10 @@ import re
 import sys
 import json
 import argparse
+import stat
 from pprint import pformat
+
+PROFILE_D_SCRIPT = '/etc/profile.d/virtualcandy.sh'
 
 
 class PipLock(object):
@@ -99,15 +102,25 @@ def install(args, pl):
         src = os.path.join(home, '.zshrc')
 
     shell_snip = (
-        f'\n# Add the following 3 lines into your {src} file\n'
         f'if [[ -f "{incl}" ]]; then\n'
         f'    . "{incl}"\n'
         'fi\n'
     )
 
-    if args.global:
-            
+    if args.system:
+        # install the /etc/profile.d/script
+        try:
+            with open(PROFILE_D_SCRIPT, 'w') as fd:
+                fd.write(shell_snip)
 
+            os.chmod(PROFILE_D_SCRIPT, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH | stat.S_IWUSR)
+        except PermissionError as e:
+            print("You don't have permission to perform a system install.")
+            print("Retry the installation as root, or re-run the command with `sudo`:")
+            print('\tsudo ' + ' '.join(sys.argv))
+            sys.exit(1)
+
+    print(f'\n# Add the following 3 lines into your {src} file')
     print(shell_snip)
 
 
@@ -171,11 +184,11 @@ if __name__ == '__main__':
         help="Install for zsh shell"
     )
     parser_install.add_argument(
-        '--global', action='store_true',
+        '--system', action='store_true',
         help=(
             "Install globaly by creating /etc/profile.d/virtualcandy.sh, "
             "must by done with proper permsissions, \n"
-            "\tex: `sudo dpkgs install --global`"
+            "\tex: `sudo dpkgs install --system`"
         )
     )
     parser_install.set_defaults(func=install)
