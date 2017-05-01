@@ -10,6 +10,16 @@ import stat
 from pprint import pformat
 
 PROFILE_D_SCRIPT = '/etc/profile.d/virtualcandy.sh'
+PROFILE_TMPL = """
+# Generated file, do not edit or risk being over written or deleted.
+if [[ -n $ZSH_NAME ]]; then
+    if [[ -f "${incl}.zsh" ]]; then
+        . "${incl}.zsh"
+    fi
+elif [[ -f "${incl}.sh" ]]; then
+    '. "${incl}.sh"
+fi
+"""
 
 
 class PipLock(object):
@@ -83,8 +93,27 @@ def install(args, pl):
     from distutils.sysconfig import get_python_lib
     plibs = os.path.join(get_python_lib(), 'virtualcandy', 'lib')
 
+    if args.system:
+        # System wide install, way to commit!
+        try:
+            with open(PROFILE_D_SCRIPT, 'w') as fd:
+                fd.write(PROFILE_TMPL.format(incl=os.path.join(plibs, 'virtualcandy')))
+
+            os.chmod(PROFILE_D_SCRIPT, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH | stat.S_IWUSR)
+            print("The system wide Virtualcandy start up file has been installed!")
+            print("You may need to now logout and log in again, or even restart, for")
+            print("your shell to start using Virtualcandy. Thank your for installing!")
+            return
+        except PermissionError as e:
+            print("You don't have permission to perform a system install.")
+            print("Retry the installation as root, or re-run the command with `sudo`:")
+            print('\tsudo ' + ' '.join(sys.argv))
+            sys.exit(1)
+
     # Kind of stupid and only supports zsh or bash
     shell = os.path.basename(os.environ.get('SHELL'))
+    if os.environ.get('ZSH_NAME'):
+        shell = 'zsh'
 
     ext = 'sh'
     if args.zsh:
@@ -102,25 +131,13 @@ def install(args, pl):
         src = os.path.join(home, '.zshrc')
 
     shell_snip = (
+        f'\n# To activate Virtualcandy for your shell'
+        f'\n# add the following 3 lines into your {src} file\n'
         f'if [[ -f "{incl}" ]]; then\n'
         f'    . "{incl}"\n'
         'fi\n'
     )
 
-    if args.system:
-        # install the /etc/profile.d/script
-        try:
-            with open(PROFILE_D_SCRIPT, 'w') as fd:
-                fd.write(shell_snip)
-
-            os.chmod(PROFILE_D_SCRIPT, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH | stat.S_IWUSR)
-        except PermissionError as e:
-            print("You don't have permission to perform a system install.")
-            print("Retry the installation as root, or re-run the command with `sudo`:")
-            print('\tsudo ' + ' '.join(sys.argv))
-            sys.exit(1)
-
-    print(f'\n# Add the following 3 lines into your {src} file')
     print(shell_snip)
 
 
