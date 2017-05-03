@@ -93,22 +93,22 @@ def install(args, pl):
     from distutils.sysconfig import get_python_lib
     plibs = os.path.join(get_python_lib(), 'virtualcandy', 'lib')
 
-    if args.system:
-        # System wide install, way to commit!
-        try:
-            with open(PROFILE_D_SCRIPT, 'w') as fd:
-                fd.write(PROFILE_TMPL.format(incl=os.path.join(plibs, 'virtualcandy')))
+    #  if args.system:
+    #      # System wide install, way to commit!
+    #      try:
+    #          with open(PROFILE_D_SCRIPT, 'w') as fd:
+    #              fd.write(PROFILE_TMPL.format(incl=os.path.join(plibs, 'virtualcandy')))
 
-            os.chmod(PROFILE_D_SCRIPT, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH | stat.S_IWUSR)
-            print("The system wide Virtualcandy start up file has been installed!")
-            print("You may need to now logout and log in again, or even restart, for")
-            print("your shell to start using Virtualcandy. Thank your for installing!")
-            return
-        except PermissionError as e:
-            print("You don't have permission to perform a system install.")
-            print("Retry the installation as root, or re-run the command with `sudo`:")
-            print('\tsudo ' + ' '.join(sys.argv))
-            sys.exit(1)
+    #          os.chmod(PROFILE_D_SCRIPT, stat.S_IRUSR | stat.S_IRGRP | stat.S_IROTH | stat.S_IWUSR)
+    #          print("The system wide Virtualcandy start up file has been installed!")
+    #          print("You may need to now logout and log in again, or even restart, for")
+    #          print("your shell to start using Virtualcandy. Thank your for installing!")
+    #          return
+    #      except PermissionError as e:
+    #          print("You don't have permission to perform a system install.")
+    #          print("Retry the installation as root, or re-run the command with `sudo`:")
+    #          print('\tsudo ' + ' '.join(sys.argv))
+    #          sys.exit(1)
 
     # Kind of stupid and only supports zsh or bash
     shell = os.path.basename(os.environ.get('SHELL'))
@@ -200,14 +200,14 @@ if __name__ == '__main__':
         '--zsh', action='store_true',
         help="Install for zsh shell"
     )
-    parser_install.add_argument(
-        '--system', action='store_true',
-        help=(
-            "Install globaly by creating /etc/profile.d/virtualcandy.sh, "
-            "must by done with proper permsissions, \n"
-            "\tex: `sudo dpkgs install --system`"
-        )
-    )
+    #  parser_install.add_argument(
+    #      '--system', action='store_true',
+    #      help=(
+    #          "Install globaly by creating /etc/profile.d/virtualcandy.sh, "
+    #          "must by done with proper permsissions, \n"
+    #          "\tex: `sudo dpkgs install --system`"
+    #      )
+    #  )
     parser_install.set_defaults(func=install)
 
     main(parser)

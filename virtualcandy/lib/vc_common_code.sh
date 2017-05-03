@@ -354,7 +354,7 @@ _install()
     then
         pr_info "Installing project packages..."
 
-        if [[ $PYTHON_ENV == 'debug' ]]; then
+        if [[ $PYTHON_ENV == 'development' ]]; then
             args="$args --dev"
             pr_info "\tInstalling project dev packages as well"
         fi
