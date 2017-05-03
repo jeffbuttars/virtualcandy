@@ -13,11 +13,11 @@ PROFILE_D_SCRIPT = '/etc/profile.d/virtualcandy.sh'
 PROFILE_TMPL = """
 # Generated file, do not edit or risk being over written or deleted.
 if [[ -n $ZSH_NAME ]]; then
-    if [[ -f "${incl}.zsh" ]]; then
-        . "${incl}.zsh"
+    if [[ -f "{incl}.zsh" ]]; then
+        . "{incl}.zsh"
     fi
-elif [[ -f "${incl}.sh" ]]; then
-    '. "${incl}.sh"
+elif [[ -f "{incl}.sh" ]]; then
+    . "{incl}.sh"
 fi
 """
 

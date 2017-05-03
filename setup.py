@@ -38,7 +38,7 @@ setup(
     license="Apache",
     url="https://github.com/jeffbuttars/virtualcandy",
 
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
 
     # classifiers=[
     #     'License :: OSI Approved :: Apache Software License',
