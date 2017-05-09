@@ -72,7 +72,7 @@ fi
 _vcdeactivate()
 {
     if [[ -n $VIRTUAL_ENV ]]; then
-        deactivate
+        deactivate > /dev/null 2>&1
     fi
 }
 
@@ -428,7 +428,7 @@ function _vc_reset()
         fi
     fi
 
-    dto=$(dirname "$to")
+    local dto=$(dirname "$to")
     if [[ -d "$to" ]]; then
         _vcdeactivate
         pr_info "vcreset removing $to"
