@@ -7,7 +7,7 @@ PKG_VER := $(shell python -c "from __future__ import print_function; import $(PK
 
 .DEFAULT:
 dist: clean
-	python ./setup.py sdist
+	umask 0022; python ./setup.py sdist
 
 test:
 	@echo "Write some tests YO!"

@@ -3,11 +3,15 @@
 
 import os
 import re
+from pathlib import Path
 import sys
 import json
 import argparse
 import stat
 from pprint import pformat
+from pipenv.project import Project
+from pipenv.utils import convert_deps_from_pip, format_toml
+
 
 PROFILE_D_SCRIPT = '/etc/profile.d/virtualcandy.sh'
 PROFILE_TMPL = """
@@ -23,7 +27,6 @@ fi
 
 
 class PipLock(object):
-
     def __init__(self, fd=None):
         self._fd = fd or open(os.path.join(os.getcwd(), 'Pipfile.lock'), 'r')
         self._pf = json.load(self._fd)
@@ -141,6 +144,58 @@ def install(args, pl):
     print(shell_snip)
 
 
+def convert(*args):
+    project = Project()
+    print("Project", dir(project))
+    print(f'path: {os.getcwd()}')
+    print(f'requirements loc: {project.requirements_exists}')
+    print(f'requirements loc: {project.requirements_location}')
+
+    # If a Pipfile exists, do nothing
+    if project.pipfile_exists:
+        print(f'BAIL project location {project.pipfile_exists}')
+        print(f'BAIL project location {project.pipfile_location}')
+        return
+
+    if not project.requirements_exists:
+        print('BAIL project can not find req file')
+
+    #  req_file = 'dev-' if dev else ''
+    req_file = project.requirements_location
+    dev_req_file = os.path.join(os.path.dirname(req_file), 'dev-requirements.txt')
+
+    packages = []
+    dev_packages = []
+    print(f'Using req file {project.requirements_location}')
+    with open(req_file, 'r') as f:
+        packages = [p for p in f.read().split('\n') if p != '']
+        print('req packages:', packages)
+
+    if os.path.exists(dev_req_file):
+        print('adding dev reqs @ ', dev_req_file)
+        with open(dev_req_file, 'r') as f:
+            dev_packages = [p for p in f.read().split('\n') if p != '']
+            print('dev req packages:', dev_packages)
+
+    pipfile = {'packages': {}, 'dev-packages': {}}
+    for package in packages:
+        dep = convert_deps_from_pip(package)
+        print('updating pipfile package:', dep)
+        pipfile['packages'].update(dep)
+
+    for package in dev_packages:
+        dep = convert_deps_from_pip(package)
+        print('updating pipfile dev-package:', dep)
+        pipfile['dev-packages'].update(dep)
+
+    print('packages for pipfile:', pipfile)
+
+    print('create pipfile')
+    project.create_pipfile()
+    print('update pipfile')
+    project.write_toml(pipfile)
+
+
 def main(parser):
     args = parser.parse_args()
 
@@ -200,6 +255,14 @@ if __name__ == '__main__':
         '--zsh', action='store_true',
         help="Install for zsh shell"
     )
+
+    parser_convert = subparsers.add_parser(
+        'convert',
+        help=("Convert a purelyl pip based project that,"
+            " uses requirements.txt files, to a Pipenv based project.")
+    )
+    parser_convert.set_defaults(func=convert)
+
     #  parser_install.add_argument(
     #      '--system', action='store_true',
     #      help=(

@@ -176,6 +176,8 @@ function _vcstart()
     . $vname/bin/activate
     pr_info "Re-Activating after pipenv install, $(which pipenv)"
 
+    eval $vcpkgs_py convert
+
    # Initialize pipenv and install any packages we track
     _install
     if [[ -n $1 ]]; then
@@ -352,6 +354,7 @@ _install()
 
     if [[ -z $1 ]]
     then
+        # Perform a converstion if needed
         pr_info "Installing project packages..."
 
         if [[ $PYTHON_ENV == 'development' ]]; then
