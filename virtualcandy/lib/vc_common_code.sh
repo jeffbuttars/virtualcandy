@@ -18,8 +18,6 @@ TMPL_DIR="${THIS_DIR}/tmpl"
 
 # export _VC_DEF_CONFIG="${THIS_DIR}/vc_config.sh"
 
-vcpkgs_py="vcpkgs"
-
 pr_pass()
 {
     echo -en "${KGRN}$*${KNRM}\n" >&2
@@ -157,7 +155,7 @@ function _vcstart()
 
     if [[ -e "$vname" ]]; then
         pr_fail "A virtualenv already exists here, bailing out!"
-        exit 1
+        return 1
     fi
 
     # Create the virtualenv.
@@ -176,7 +174,7 @@ function _vcstart()
     . $vname/bin/activate
     pr_info "Re-Activating after pipenv install, $(which pipenv)"
 
-    eval $vcpkgs_py convert
+    vcpkgs convert
 
    # Initialize pipenv and install any packages we track
     _install
@@ -191,6 +189,8 @@ function _vcstart()
    if [[ ! -f $VC_PROJECT_FILE ]]; then
       _vc_proj > $VC_PROJECT_FILE
    fi
+
+   return 0
 }
 
 # Upgrade the nearest virtualenv packages
@@ -208,7 +208,7 @@ function _vcup()
         local pipfile="$(pipenv --bare --where).lock"
 
         for pkg in $@ ; do
-            local has_pkg=$(eval "$vcpkgs_py --lock-file $pipfile info $pkg")
+            local has_pkg=$(eval "vcpkgs --lock-file $pipfile info $pkg")
             if [[ -z $has_pkg ]]; then
                 pr_fail "The package '$pkg' is not installed, bailing out."
                 return 1
@@ -289,8 +289,8 @@ function _vcfreeze()
 
     # _backup_if_exists "$vd/$VC_VENV_REQFILE"
 
-    eval $vcpkgs_py --lock-file $pipfile freeze >! "$vd/${VC_VENV_REQFILE}.new"
-    eval $vcpkgs_py --lock-file $pipfile --dev freeze >! "$vd/dev-${VC_VENV_REQFILE}.new"
+    eval vcpkgs --lock-file $pipfile freeze >! "$vd/${VC_VENV_REQFILE}.new"
+    eval vcpkgs --lock-file $pipfile --dev freeze >! "$vd/dev-${VC_VENV_REQFILE}.new"
 
     if [[ -f "$vd/${VC_VENV_REQFILE}.new"   ]]; then
         mv -f "$vd/${VC_VENV_REQFILE}.new" "$vd/${VC_VENV_REQFILE}"
@@ -331,7 +331,7 @@ function _vcmod()
     if [[ -z $1 ]]
     then
         pr_fail "$0: At least one module name is required."
-        exit 1
+        return 1
     fi
 
     for m in $@ ; do
@@ -344,6 +344,8 @@ function _vcmod()
         fi
         pr_pass "created $m/__init__.py"
     done
+
+    return 0
 }
 
 # Private func, installs pkgs only, no freeze or locking.
@@ -357,7 +359,7 @@ _install()
         # Perform a converstion if needed
         pr_info "Installing project packages..."
 
-        if [[ $PYTHON_ENV == 'development' ]]; then
+        if [[ $PYTHON_ENV == 'debug' ]]; then
             args="$args --dev"
             pr_info "\tInstalling project dev packages as well"
         fi
@@ -416,18 +418,32 @@ function _vc_auto_activate()
 
 function _vc_reset()
 {
-    to="$(vcfindenv)"
+    local to="$(vcfindenv)"
+    # If we can't find an env and the current directory 'looks' like a project, use cwd
+    if [[ ! -d "$to" ]]; then
+        if [[ -f 'Pipfile' ]] || [[ -f "$VC_VENV_REQFILE" ]]; then
+            to="$PWD/$VC_VENV_NAME"
+            mkdir $to
+            pr_info "vcreset using current directory $PWD"
+        fi
+    fi
+
     dto=$(dirname "$to")
     if [[ -d "$to" ]]; then
+        _vcdeactivate
+        pr_info "vcreset removing $to"
         rm -fr "$to"
         if [[ "$?" != '0' ]]; then
-            exit 1
+            pr_fail "vcreset error while removing $to"
+            return 1
         fi
         cd $dto
-        vcstart
+        pr_info "vcreset restarting virtualenv in $dto"
+        _vcstart
         cd -
     fi
 
+    return 0
 }
 
 function _vc_pkgskel()
@@ -442,7 +458,7 @@ function _vc_pkgskel()
     if [[ -d "$pkg_name" ]]; then
         pr_fail "A directory named $pkg_name already exists."
         pr_fail "Not building package skeleton for $pkg_name."
-        exit 1
+        return 1
     fi
 
     local pkg_name_u=$(echo "$pkg_name" | $SED -e 's/-/_/g') # underscored
@@ -471,6 +487,7 @@ function _vc_pkgskel()
     tmp_out=$(. "${TMPL_DIR}/pkg_makefile.tmpl.sh")
     echo "$tmp_out" > "$pkg_name/Makefile"
 
+    return 0
 }
 
 function _vc_clean()

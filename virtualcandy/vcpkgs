@@ -2,16 +2,13 @@
 # encoding: utf-8
 
 import os
-import re
-from pathlib import Path
 import sys
 import json
 import argparse
-import stat
 import crayons
 from pprint import pformat
 from pipenv.project import Project
-from pipenv.utils import convert_deps_from_pip, format_toml
+from pipenv.utils import convert_deps_from_pip
 
 
 PROFILE_D_SCRIPT = '/etc/profile.d/virtualcandy.sh'
@@ -147,33 +144,27 @@ def install(args, pl):
 
 def convert(args, pl):
     project = Project()
-    #  print("Project", dir(project))
-    #  print(f'path: {os.getcwd()}')
-    #  print(f'requirements loc: {project.requirements_exists}')
-    #  print(f'requirements loc: {project.requirements_location}')
 
     # If a Pipfile exists, do nothing
     if not args.force and project.pipfile_exists:
-        crayons.red(f'Pipfile {project.pipfile_location} already exists, not converting.')
+        print(crayons.red(f'Pipfile {project.pipfile_location} already exists, not converting.'))
         return
 
     if not project.requirements_exists:
-        crayons.red("Can't find requirements file for project, not converting.")
+        print(crayons.red("Can't find requirements file for project, not converting."))
         return
 
-    crayons.yellow(f'Creating Pipfile from existing requirements at {project.requirements_location} ...')
-
     if not project.pipfile_exists:
-        crayons.yellow('Creating pipfile')
+        print(crayons.yellow(('Creating Pipfile from existing requirements at '
+                              f'{project.requirements_location} ...')))
         project.create_pipfile()
 
     pipfile = project.parsed_pipfile
-    crayons.yellow('New Pipfile parsed', pipfile)
-
     pipfile['packages'] = pipfile['packages'] if 'packages' in pipfile else {}
     pipfile['dev-packages'] = pipfile['dev-packages'] if 'dev-packages' in pipfile else {}
 
     req_file = project.requirements_location
+    # Name/prefix of dev reqs file should be configurable
     dev_req_file = os.path.join(os.path.dirname(req_file), 'dev-requirements.txt')
 
     packages = []
@@ -182,24 +173,20 @@ def convert(args, pl):
         packages = [p for p in f.read().split('\n') if p != '']
 
     if os.path.exists(dev_req_file):
-        crayons.yellow(f'Adding development requirements from {dev_req_file}')
+        print(crayons.yellow(f'Adding development requirements from {dev_req_file}'))
         with open(dev_req_file, 'r') as f:
             dev_packages = [p for p in f.read().split('\n') if p != '']
 
     for package in packages:
         dep = convert_deps_from_pip(package)
-        #  print('updating pipfile package:', dep)
         pipfile['packages'].update(dep)
 
     for package in dev_packages:
         dep = convert_deps_from_pip(package)
-        #  print('updating pipfile dev-package:', dep)
         pipfile['dev-packages'].update(dep)
 
-    #  print('packages for pipfile:', pipfile)
-
-    crayons.yellow('Updating pipfile with existing requirements')
     project.write_toml(pipfile)
+    print(crayons.yellow('Updated pipfile with packages from existing requirements files'))
 
 
 def main(parser):
