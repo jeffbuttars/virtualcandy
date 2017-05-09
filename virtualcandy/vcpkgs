@@ -8,6 +8,7 @@ import sys
 import json
 import argparse
 import stat
+import crayons
 from pprint import pformat
 from pipenv.project import Project
 from pipenv.utils import convert_deps_from_pip, format_toml
@@ -144,55 +145,60 @@ def install(args, pl):
     print(shell_snip)
 
 
-def convert(*args):
+def convert(args, pl):
     project = Project()
-    print("Project", dir(project))
-    print(f'path: {os.getcwd()}')
-    print(f'requirements loc: {project.requirements_exists}')
-    print(f'requirements loc: {project.requirements_location}')
+    #  print("Project", dir(project))
+    #  print(f'path: {os.getcwd()}')
+    #  print(f'requirements loc: {project.requirements_exists}')
+    #  print(f'requirements loc: {project.requirements_location}')
 
     # If a Pipfile exists, do nothing
-    if project.pipfile_exists:
-        print(f'BAIL project location {project.pipfile_exists}')
-        print(f'BAIL project location {project.pipfile_location}')
+    if not args.force and project.pipfile_exists:
+        crayons.red(f'Pipfile {project.pipfile_location} already exists, not converting.')
         return
 
     if not project.requirements_exists:
-        print('BAIL project can not find req file')
+        crayons.red("Can't find requirements file for project, not converting.")
+        return
 
-    #  req_file = 'dev-' if dev else ''
+    crayons.yellow(f'Creating Pipfile from existing requirements at {project.requirements_location} ...')
+
+    if not project.pipfile_exists:
+        crayons.yellow('Creating pipfile')
+        project.create_pipfile()
+
+    pipfile = project.parsed_pipfile
+    crayons.yellow('New Pipfile parsed', pipfile)
+
+    pipfile['packages'] = pipfile['packages'] if 'packages' in pipfile else {}
+    pipfile['dev-packages'] = pipfile['dev-packages'] if 'dev-packages' in pipfile else {}
+
     req_file = project.requirements_location
     dev_req_file = os.path.join(os.path.dirname(req_file), 'dev-requirements.txt')
 
     packages = []
     dev_packages = []
-    print(f'Using req file {project.requirements_location}')
     with open(req_file, 'r') as f:
         packages = [p for p in f.read().split('\n') if p != '']
-        print('req packages:', packages)
 
     if os.path.exists(dev_req_file):
-        print('adding dev reqs @ ', dev_req_file)
+        crayons.yellow(f'Adding development requirements from {dev_req_file}')
         with open(dev_req_file, 'r') as f:
             dev_packages = [p for p in f.read().split('\n') if p != '']
-            print('dev req packages:', dev_packages)
 
-    pipfile = {'packages': {}, 'dev-packages': {}}
     for package in packages:
         dep = convert_deps_from_pip(package)
-        print('updating pipfile package:', dep)
+        #  print('updating pipfile package:', dep)
         pipfile['packages'].update(dep)
 
     for package in dev_packages:
         dep = convert_deps_from_pip(package)
-        print('updating pipfile dev-package:', dep)
+        #  print('updating pipfile dev-package:', dep)
         pipfile['dev-packages'].update(dep)
 
-    print('packages for pipfile:', pipfile)
+    #  print('packages for pipfile:', pipfile)
 
-    print('create pipfile')
-    project.create_pipfile()
-    print('update pipfile')
+    crayons.yellow('Updating pipfile with existing requirements')
     project.write_toml(pipfile)
 
 
@@ -259,9 +265,13 @@ if __name__ == '__main__':
     parser_convert = subparsers.add_parser(
         'convert',
         help=("Convert a purelyl pip based project that,"
-            " uses requirements.txt files, to a Pipenv based project.")
+              " uses requirements.txt files, to a Pipenv based project.")
     )
     parser_convert.set_defaults(func=convert)
+    parser_convert.add_argument(
+        '--force', action='store_true',
+        help='Force the adding requirements entries into the Pipfile even if it exists'
+    )
 
     #  parser_install.add_argument(
     #      '--system', action='store_true',
