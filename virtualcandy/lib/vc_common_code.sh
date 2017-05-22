@@ -245,7 +245,6 @@ function _vcup()
         pipenv update --dev
     fi
 
-    pr_info "VCUP LOCK IT!!!"
     vcfreeze 'lock'
 
     res="$?"
