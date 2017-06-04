@@ -71,6 +71,10 @@ class PipLock(object):
 
 
 def freeze(args, pl):
+    if not pl:
+        print('')
+        return
+
     if args.dev:
         print('\n'.join(pl.develop_freeze))
     else:
