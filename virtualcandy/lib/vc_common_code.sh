@@ -18,8 +18,6 @@ TMPL_DIR="${THIS_DIR}/tmpl"
 
 # export _VC_DEF_CONFIG="${THIS_DIR}/vc_config.sh"
 
-vcpkgs_py="vcpkgs"
-
 pr_pass()
 {
     echo -en "${KGRN}$*${KNRM}\n" >&2
@@ -73,8 +71,8 @@ fi
 
 _vcdeactivate()
 {
-    if [[ -n $VIRTUAL_ENV ]]; then
-        deactivate
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        deactivate > /dev/null 2>&1
     fi
 }
 
@@ -84,7 +82,7 @@ _vc_source_project_file()
     # Otherwise, look in the current dir.
     local vpf="$PWD/$VC_PROJECT_FILE"
 
-    if [[ -n $VIRTUAL_ENV ]]; then
+    if [[ -n "$VIRTUAL_ENV" ]]; then
         vpf="$(dirname $VIRTUAL_ENV)/$VC_PROJECT_FILE"
     fi
 
@@ -157,7 +155,7 @@ function _vcstart()
 
     if [[ -e "$vname" ]]; then
         pr_fail "A virtualenv already exists here, bailing out!"
-        exit 1
+        return 1
     fi
 
     # Create the virtualenv.
@@ -176,9 +174,11 @@ function _vcstart()
     . $vname/bin/activate
     pr_info "Re-Activating after pipenv install, $(which pipenv)"
 
+    vcpkgs convert
+
    # Initialize pipenv and install any packages we track
     _install
-    if [[ -n $1 ]]; then
+    if [[ -n "$1" ]]; then
         # Install any additional packages given with the command,
         # then lock and freeze them
         _install $@
@@ -189,6 +189,8 @@ function _vcstart()
    if [[ ! -f $VC_PROJECT_FILE ]]; then
       _vc_proj > $VC_PROJECT_FILE
    fi
+
+   return 0
 }
 
 # Upgrade the nearest virtualenv packages
@@ -200,13 +202,13 @@ function _vcup()
 
     reqlist="$vdir/$VC_VENV_REQFILE"
 
-    if [ -n $1 ]; then
+    if [ -n "$1" ]; then
         local def_pkgs=''
         local dev_pkgs=''
         local pipfile="$(pipenv --bare --where).lock"
 
         for pkg in $@ ; do
-            local has_pkg=$(eval "$vcpkgs_py --lock-file $pipfile info $pkg")
+            local has_pkg=$(eval "vcpkgs --lock-file $pipfile info $pkg")
             if [[ -z $has_pkg ]]; then
                 pr_fail "The package '$pkg' is not installed, bailing out."
                 return 1
@@ -219,7 +221,7 @@ function _vcup()
             fi
         done
 
-        if [[ -n $def_pkgs ]]; then
+        if [[ -n "$def_pkgs" ]]; then
             pr_info "Removing production packages: $def_pkgs "
             eval pipenv uninstall $def_pkgs
 
@@ -227,7 +229,7 @@ function _vcup()
             eval pipenv install $def_pkgs
         fi
 
-        if [[ -n $dev_pkgs ]]; then
+        if [[ -n "$dev_pkgs" ]]; then
             pr_info "Removing development packages : $dev_pkgs"
             pr_info "(NOTE: removing development packages with pipenv has been problematic)"
             eval pipenv uninstall $dev_pkgs
@@ -237,6 +239,8 @@ function _vcup()
         fi
 
     else
+        pr_info "Removing lock file, updating packages and then re-building the lock file..."
+        rm -f "$vdir/Pipfile.lock"
         pipenv update
         pipenv update --dev
     fi
@@ -254,7 +258,7 @@ function _vcfindenv()
     local vname=$VC_VENV_NAME
     local res=""
 
-    if [[ -n $vdir ]]; then
+    if [[ -n "$vdir" ]]; then
         res="$vdir/$vname"
     fi
 
@@ -287,8 +291,8 @@ function _vcfreeze()
 
     # _backup_if_exists "$vd/$VC_VENV_REQFILE"
 
-    eval $vcpkgs_py --lock-file $pipfile freeze >! "$vd/${VC_VENV_REQFILE}.new"
-    eval $vcpkgs_py --lock-file $pipfile --dev freeze >! "$vd/dev-${VC_VENV_REQFILE}.new"
+    eval vcpkgs --lock-file $pipfile freeze >! "$vd/${VC_VENV_REQFILE}.new"
+    eval vcpkgs --lock-file $pipfile --dev freeze >! "$vd/dev-${VC_VENV_REQFILE}.new"
 
     if [[ -f "$vd/${VC_VENV_REQFILE}.new"   ]]; then
         mv -f "$vd/${VC_VENV_REQFILE}.new" "$vd/${VC_VENV_REQFILE}"
@@ -312,7 +316,7 @@ function _vcactivate()
 
     vloc=$(vcfindenv)
 
-    if [[ -n $vloc ]]; then
+    if [[ -n "$vloc" ]]; then
        pr_pass "Activating ~${vloc#$HOME/}"
        . "$vloc/bin/activate"
        # Source a second time, after we enter the virtualenv
@@ -329,7 +333,7 @@ function _vcmod()
     if [[ -z $1 ]]
     then
         pr_fail "$0: At least one module name is required."
-        exit 1
+        return 1
     fi
 
     for m in $@ ; do
@@ -342,6 +346,8 @@ function _vcmod()
         fi
         pr_pass "created $m/__init__.py"
     done
+
+    return 0
 }
 
 # Private func, installs pkgs only, no freeze or locking.
@@ -352,10 +358,11 @@ _install()
 
     if [[ -z $1 ]]
     then
+        # Perform a converstion if needed
         pr_info "Installing project packages..."
         eval pipenv $args
 
-        if [[ $PYTHON_ENV == 'development' ]]; then
+        if [[ $PYTHON_ENV == 'debug' ]]; then
             args="$args --dev"
             pr_info "\tInstalling project dev packages as well"
         fi
@@ -373,7 +380,7 @@ _vcin()
     _install $@
 
     # Only lock and freeze if params, package names, were given
-    if [[ -n $1 ]]; then
+    if [[ -n "$1" ]]; then
         vcfreeze 'lock'
     fi
 }
@@ -389,11 +396,11 @@ function _vc_auto_activate()
     # see if we're under a virtualenv.
     local c_venv="$(vcfindenv)"
 
-    if [[ -n $c_venv ]]; then
+    if [[ -n "$c_venv" ]]; then
         # We're in/under an environment.
         # If we're activated, switch to the new one if it's different from the
         # current.
-        if [[ -n $VIRTUAL_ENV ]]; then
+        if [[ -n "$VIRTUAL_ENV" ]]; then
             from="~/${VIRTUAL_ENV#$HOME/}"
             to="~/${c_venv#$HOME/}"
             if [ "$from" != "$to" ]; then
@@ -405,7 +412,7 @@ function _vc_auto_activate()
         if [[ -z $VIRTUAL_ENV ]]; then
             vcactivate
         fi
-    elif [[ -n $VIRTUAL_ENV ]]; then
+    elif [[ -n "$VIRTUAL_ENV" ]]; then
         # We've left an environment, so deactivate.
         pr_info "Deactivating ~/${VIRTUAL_ENV#$HOME/}\n"
        _vcdeactivate
@@ -415,18 +422,32 @@ function _vc_auto_activate()
 
 function _vc_reset()
 {
-    to="$(vcfindenv)"
-    dto=$(dirname "$to")
+    local to="$(vcfindenv)"
+    # If we can't find an env and the current directory 'looks' like a project, use cwd
+    if [[ ! -d "$to" ]]; then
+        if [[ -f 'Pipfile' ]] || [[ -f "$VC_VENV_REQFILE" ]]; then
+            to="$PWD/$VC_VENV_NAME"
+            mkdir $to
+            pr_info "vcreset using current directory $PWD"
+        fi
+    fi
+
+    local dto=$(dirname "$to")
     if [[ -d "$to" ]]; then
+        _vcdeactivate
+        pr_info "vcreset removing $to"
         rm -fr "$to"
         if [[ "$?" != '0' ]]; then
-            exit 1
+            pr_fail "vcreset error while removing $to"
+            return 1
         fi
         cd $dto
-        vcstart
+        pr_info "vcreset restarting virtualenv in $dto"
+        _vcstart
         cd -
     fi
 
+    return 0
 }
 
 function _vc_pkgskel()
@@ -441,7 +462,7 @@ function _vc_pkgskel()
     if [[ -d "$pkg_name" ]]; then
         pr_fail "A directory named $pkg_name already exists."
         pr_fail "Not building package skeleton for $pkg_name."
-        exit 1
+        return 1
     fi
 
     local pkg_name_u=$(echo "$pkg_name" | $SED -e 's/-/_/g') # underscored
@@ -470,6 +491,7 @@ function _vc_pkgskel()
     tmp_out=$(. "${TMPL_DIR}/pkg_makefile.tmpl.sh")
     echo "$tmp_out" > "$pkg_name/Makefile"
 
+    return 0
 }
 
 function _vc_clean()
@@ -479,7 +501,7 @@ function _vc_clean()
     find . -iname '*.pyc' | xargs rm -fv
     find . -iname '*.pyo' | xargs rm -fv
 
-    if [[ -n $1 ]]; then
+    if [[ -n "$1" ]]; then
         if [[ $REPLY =~ ^[yY]$ ]]; then
             for re in $@ ; do
                 find . -iname "$re" | xargs rm -fv

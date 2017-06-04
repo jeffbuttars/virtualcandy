@@ -2,12 +2,14 @@
 # encoding: utf-8
 
 import os
-import re
 import sys
 import json
 import argparse
-import stat
+import crayons
 from pprint import pformat
+from pipenv.project import Project
+from pipenv.utils import convert_deps_from_pip
+
 
 PROFILE_D_SCRIPT = '/etc/profile.d/virtualcandy.sh'
 PROFILE_TMPL = """
@@ -23,7 +25,6 @@ fi
 
 
 class PipLock(object):
-
     def __init__(self, fd=None):
         self._fd = fd or open(os.path.join(os.getcwd(), 'Pipfile.lock'), 'r')
         self._pf = json.load(self._fd)
@@ -145,6 +146,53 @@ def install(args, pl):
     print(shell_snip)
 
 
+def convert(args, pl):
+    project = Project()
+
+    # If a Pipfile exists, do nothing
+    if not args.force and project.pipfile_exists:
+        print(crayons.red(f'Pipfile {project.pipfile_location} already exists, not converting.'))
+        return
+
+    if not project.requirements_exists:
+        print(crayons.red("Can't find requirements file for project, not converting."))
+        return
+
+    if not project.pipfile_exists:
+        print(crayons.yellow(('Creating Pipfile from existing requirements at '
+                              f'{project.requirements_location} ...')))
+        project.create_pipfile()
+
+    pipfile = project.parsed_pipfile
+    pipfile['packages'] = pipfile['packages'] if 'packages' in pipfile else {}
+    pipfile['dev-packages'] = pipfile['dev-packages'] if 'dev-packages' in pipfile else {}
+
+    req_file = project.requirements_location
+    # Name/prefix of dev reqs file should be configurable
+    dev_req_file = os.path.join(os.path.dirname(req_file), 'dev-requirements.txt')
+
+    packages = []
+    dev_packages = []
+    with open(req_file, 'r') as f:
+        packages = [p for p in f.read().split('\n') if p != '']
+
+    if os.path.exists(dev_req_file):
+        print(crayons.yellow(f'Adding development requirements from {dev_req_file}'))
+        with open(dev_req_file, 'r') as f:
+            dev_packages = [p for p in f.read().split('\n') if p != '']
+
+    for package in packages:
+        dep = convert_deps_from_pip(package)
+        pipfile['packages'].update(dep)
+
+    for package in dev_packages:
+        dep = convert_deps_from_pip(package)
+        pipfile['dev-packages'].update(dep)
+
+    project.write_toml(pipfile)
+    print(crayons.yellow('Updated pipfile with packages from existing requirements files'))
+
+
 def main(parser):
     args = parser.parse_args()
 
@@ -204,6 +252,18 @@ if __name__ == '__main__':
         '--zsh', action='store_true',
         help="Install for zsh shell"
     )
+
+    parser_convert = subparsers.add_parser(
+        'convert',
+        help=("Convert a purelyl pip based project that,"
+              " uses requirements.txt files, to a Pipenv based project.")
+    )
+    parser_convert.set_defaults(func=convert)
+    parser_convert.add_argument(
+        '--force', action='store_true',
+        help='Force the adding requirements entries into the Pipfile even if it exists'
+    )
+
     #  parser_install.add_argument(
     #      '--system', action='store_true',
     #      help=(

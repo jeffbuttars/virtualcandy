@@ -3,8 +3,8 @@
 
 import os
 import sys
-#  from pip.req import parse_requirements
-#  from pip.download import PipSession
+from pip.req import parse_requirements
+from pip.download import PipSession
 from setuptools import setup
 
 THIS_DIR = os.path.basename(os.path.abspath(__file__))
@@ -12,20 +12,20 @@ sys.path.insert(0, os.path.join(THIS_DIR, 'virtualcandy'))
 import virtualcandy
 
 
-#  def get_requires(rname='requirements.txt'):
-#      this_dir = os.path.realpath(os.path.dirname(__file__))
-#      fname = os.path.join(this_dir, rname)
-#      res = []
+def get_requires(rname='requirements.txt'):
+    this_dir = os.path.realpath(os.path.dirname(__file__))
+    fname = os.path.join(this_dir, rname)
+    res = []
 
-#      # We work around a pip bug here.
-#      try:
-#          reqs = parse_requirements(fname)
-#          res = [str(ir.req) for ir in reqs]
-#      except TypeError:
-#          reqs = parse_requirements(fname, session=PipSession())
-#          res = [str(ir.req) for ir in reqs]
+    # We work around a pip bug here.
+    try:
+        reqs = parse_requirements(fname)
+        res = [str(ir.req) for ir in reqs]
+    except TypeError:
+        reqs = parse_requirements(fname, session=PipSession())
+        res = [str(ir.req) for ir in reqs]
 
-#      return res
+    return res
 
 
 setup(
@@ -49,8 +49,7 @@ setup(
     #     'Topic :: Internet',
     # ],
 
-    #  install_requires=get_requires() + []
-
+    install_requires=get_requires() + [],
     scripts=['virtualcandy/vcpkgs'],
     package_data={'virtualcandy': ['lib/*', 'lib/tmpl/*']},
 
