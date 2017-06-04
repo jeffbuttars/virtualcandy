@@ -353,17 +353,19 @@ _install()
     if [[ -z $1 ]]
     then
         pr_info "Installing project packages..."
+        eval pipenv $args
 
         if [[ $PYTHON_ENV == 'development' ]]; then
             args="$args --dev"
             pr_info "\tInstalling project dev packages as well"
         fi
+
+        eval pipenv $args
     else
         # Install whatever params are given
         args="$args $@"
+        eval pipenv $args
     fi
-
-    eval pipenv $args
 }
 
 _vcin()
