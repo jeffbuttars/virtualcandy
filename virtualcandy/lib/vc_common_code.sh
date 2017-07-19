@@ -358,9 +358,7 @@ _install()
 
     if [[ -z $1 ]]
     then
-        # Perform a converstion if needed
         pr_info "Installing project packages..."
-        eval pipenv $args
 
         if [[ $PYTHON_ENV == 'debug' ]]; then
             args="$args --dev"
