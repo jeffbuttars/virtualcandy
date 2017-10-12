@@ -239,13 +239,16 @@ function _vcup()
         fi
 
     else
-        pr_info "Removing lock file, updating packages and then re-building the lock file..."
-        rm -f "$vdir/Pipfile.lock"
+        # pr_info "Removing lock file..."
+        # rm -f "$vdir/Pipfile.lock"
+        # pr_info "Re-installing pipenv..."
+        # pip install -I pipenv
+        # pip install -I urllib3
+        pr_info "Updating packages..."
         pipenv update
-        pipenv update --dev
+        # pr_info "Updating dev packages..."
+        # pipenv update --dev
     fi
-
-    vcfreeze 'lock'
 
     res="$?"
     return $res
@@ -281,7 +284,7 @@ function _vcfreeze()
         pipenv lock
     fi
 
-    local pipfile="$(pipenv --bare --where).lock"
+    local pipfile="$(pipenv --bare --where)/Pipfile.lock"
 
     if [[ ! -f $pipfile ]]; then
         pr_fail "No $pipfile present, can only freeze lock packages."
