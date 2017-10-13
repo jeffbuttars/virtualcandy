@@ -62,13 +62,6 @@ then
     fi
 fi
 
-if [[ -z $VC_VENV_NEW_SHELL ]]
-then
-    # Highly recommend using 'yes', but the default behavior of
-    # virtualenv is not use a new shell, so we mimick it's defaults.
-    VC_VENV_NEW_SHELL='false'
-fi
-
 _vcdeactivate()
 {
     if [[ -n "$VIRTUAL_ENV" ]]; then
@@ -79,11 +72,14 @@ _vcdeactivate()
 _vc_source_project_file()
 {
     # If VIRTUAL_ENV is set, source the proj file in that dir, if it exists.
-    # Otherwise, look in the current dir.
+    # Else, look in the current dir
+    # Otherwise, try to find it with 'pipenv --where'.
     local vpf="$PWD/$VC_PROJECT_FILE"
 
     if [[ -n "$VIRTUAL_ENV" ]]; then
         vpf="$(dirname $VIRTUAL_ENV)/$VC_PROJECT_FILE"
+    elif [[ ! -f $vpf ]]; then
+        vpf="$(pipenv --where)/$VC_PROJECT_FILE"
     fi
 
     if [[ -f "$vpf" ]]; then
@@ -142,11 +138,6 @@ _vc_ignore()
 function _vcstart()
 {
     _vc_source_project_file
-
-    if [[ "$VC_VENV_NEW_SHELL" == 'true' ]]; then
-        pipenv shell
-        return
-    fi
 
     local vname=$VC_VENV_NAME
 
@@ -312,8 +303,22 @@ function _vcfreeze()
 
 function _vcactivate()
 {
+    # Prefer a new shell environment via 'pipenv shell' if it's configured
+    if [[ "$VC_VENV_NEW_SHELL" == 'true' ]]; then
+        # The new shell will try to activate when it's started,
+        # so avoid the nesting warning from pipenv
+        if [[ -n $PIPENV_ACTIVE ]]; then
+            return
+        fi
+
+        pr_info "Activating environment in a new shell ..."
+        _vc_source_project_file
+        pipenv shell
+        return
+    fi
+
     local vname=$VC_VENV_NAME
-    vloc=''
+    local vloc=''
 
     vloc=$(vcfindenv)
 
@@ -408,6 +413,9 @@ function _vc_auto_activate()
     elif [[ -n "$VIRTUAL_ENV" ]]; then
         # We've left an environment, so deactivate.
         pr_info "Deactivating ~/${VIRTUAL_ENV#$HOME/}\n"
+        if [[ -n $PIPENV_ACTIVE ]]; then
+            exit
+        fi
        _vcdeactivate
     fi
 }
@@ -516,8 +524,8 @@ function _vc_proj()
     echo "# VC_VIRTUALENV_EXE The name of the virtualenv executable to use"
     echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"
     echo ""
-    echo "# VC_VENV_NEW_SHELL use `pipenv shell` to enter the virtualenv in a new shell"
-    echo "# VC_VENV_NEW_SHELL='true'"
+    echo "# VC_VENV_NEW_SHELL use 'pipenv shell' to enter the virtualenv in a new shell"
+    echo "VC_VENV_NEW_SHELL='false'"
     echo ""
     echo "# PIPENV_VENV_IN_PROJECT"
     echo "export PIPENV_VENV_IN_PROJECT=$VC_VENV_NAME"

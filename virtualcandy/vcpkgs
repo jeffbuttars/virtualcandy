@@ -151,7 +151,6 @@ def convert(args, pl):
 
     # If a Pipfile exists, do nothing
     if not args.force and project.pipfile_exists:
-        print(crayons.red(f'Pipfile {project.pipfile_location} already exists, not converting.'))
         return
 
     if not project.requirements_exists:

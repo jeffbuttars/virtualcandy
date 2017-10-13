@@ -7,6 +7,12 @@ then
     export VC_VENV_REQFILE='requirements.txt'
 fi
 
+# Activate environment in a new shell, disabled by default
+if [[ -z $VC_VENV_NEW_SHELL ]]
+then
+    export VC_VENV_NEW_SHELL='false'
+fi
+
 # Dev Requirements filename
 if [[ -z $VC_VENV_DEV_REQFILE ]]
 then

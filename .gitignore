@@ -29,3 +29,7 @@ pip-log.txt
 # Vim swap files
 *.swp
 
+GPATH
+GRTAGS
+GTAGS
+tags
