@@ -5,7 +5,7 @@ import os
 import sys
 import json
 import argparse
-import crayons
+from pipenv.patched import crayons
 from pprint import pformat
 from pipenv.project import Project
 from pipenv.utils import convert_deps_from_pip
@@ -183,6 +183,8 @@ def convert(args, pl):
 
     for package in packages:
         dep = convert_deps_from_pip(package)
+        print('DEP', pipfile)
+        print('DEP', dir(pipfile))
         pipfile['packages'].update(dep)
 
     for package in dev_packages:

@@ -143,18 +143,16 @@ function _vcstart()
 {
     _vc_source_project_file
 
-    # if [[ "$VC_VENV_NEW_SHELL" == 'true' ]]; then
-    #     # get our current shell
-    #     C_SHELL="$SHELL"
-
-    #     # Enter the new shell and start up the env.
-    #     $C_SHELL -c "$THIS_DIR/vc_new_shell.sh"
-    # fi
+    if [[ "$VC_VENV_NEW_SHELL" == 'true' ]]; then
+        pipenv shell
+        return
+    fi
 
     local vname=$VC_VENV_NAME
 
     if [[ -e "$vname" ]]; then
-        pr_fail "A virtualenv already exists here, bailing out!"
+        pr_fail "A virtualenv already exists here, acitvating and bailing out!"
+        vcactivate
         return 1
     fi
 
@@ -379,17 +377,11 @@ _install()
 _vcin()
 {
     _install $@
-
-    # Only lock and freeze if params, package names, were given
-    if [[ -n "$1" ]]; then
-        vcfreeze 'lock'
-    fi
 }
 
 _vcrem()
 {
     eval pipenv uninstall $@
-    vcfreeze 'lock'
 }
 
 function _vc_auto_activate()
