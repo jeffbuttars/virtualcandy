@@ -182,8 +182,10 @@ def convert(args, pl):
 
     for package in packages:
         dep = convert_deps_from_pip(package)
-        print('DEP', pipfile)
-        print('DEP', dir(pipfile))
+        #  print('DEP', pipfile)
+        #  print('DEP', dir(pipfile))
+        #  print('DEP p', pipfile['packages'])
+        #  print('DEP p', dir(pipfile['packages']))
         pipfile['packages'].update(dep)
 
     for package in dev_packages:
