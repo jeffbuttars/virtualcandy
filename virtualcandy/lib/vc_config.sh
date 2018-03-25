@@ -2,6 +2,7 @@
 export VC_VENV_NAME='.venv'
 
 # Requirements filename
+# XXX( Depricated)
 if [[ -z $VC_VENV_REQFILE ]]
 then
     export VC_VENV_REQFILE='requirements.txt'
@@ -14,6 +15,7 @@ then
 fi
 
 # Dev Requirements filename
+# XXX( Depricated)
 if [[ -z $VC_VENV_DEV_REQFILE ]]
 then
     export VC_VENV_DEV_REQFILE='dev-requirements.txt'
@@ -27,6 +29,15 @@ fi
 
 if [[ -z $PIPENV_VENV_IN_PROJECT ]]; then
     export PIPENV_VENV_IN_PROJECT="$VC_VENV_NAME"
+fi
+
+# Initial packages.
+# A list of packages to always install in a fresh environment with `vcstart`
+# EX:
+#     export VC_VENV_INITIAL_PKGS="neovim"
+if [[ -z $VC_VENV_INITIAL_PKGS ]]
+then
+    export VC_VENV_INITIAL_PKGS=''
 fi
 
 # Define which python to use

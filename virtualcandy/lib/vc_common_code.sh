@@ -174,6 +174,14 @@ function _vcstart()
         vcfreeze 'lock'
     fi
 
+    if [[ -n "$VC_VENV_INITIAL_PKGS" ]]; then
+        # Install any additional packages given with the command,
+        # then lock and freeze them
+        pr_info "Installing initial packages: $VC_VENV_INITIAL_PKGS"
+        _install "$VC_VENV_INITIAL_PKGS"
+        vcfreeze 'lock'
+    fi
+
    # Create a .vc_proj file if one doesn't exist
    if [[ ! -f $VC_PROJECT_FILE ]]; then
       _vc_proj > $VC_PROJECT_FILE
@@ -259,46 +267,47 @@ function _vcfindenv()
 
 function _vcfreeze()
 {
-    local vd=$(vcfinddir)
+    pr_fail "Freeze is deprecated"
+    # local vd=$(vcfinddir)
 
-    if [[ -z "$vd" ]]; then
-        pr_fail "Unable to determine virtualenv project directory"
-        return
-    fi
+    # if [[ -z "$vd" ]]; then
+    #     pr_fail "Unable to determine virtualenv project directory"
+    #     return
+    # fi
 
-    # make sure virutalenv is activated
-    vcactivate
+    # # make sure virutalenv is activated
+    # vcactivate
 
-    if [[ $1 == "lock" ]]; then
-        pipenv lock
-    fi
+    # if [[ $1 == "lock" ]]; then
+    #     pipenv lock
+    # fi
 
-    local pipfile="$(pipenv --bare --where)/Pipfile.lock"
+    # local pipfile="$(pipenv --bare --where)/Pipfile.lock"
 
-    if [[ ! -f $pipfile ]]; then
-        pr_fail "No $pipfile present, can only freeze lock packages."
-        pr_fail "Trying running the 'vcin' command first to lock the packages."
-        return
-    fi
+    # if [[ ! -f $pipfile ]]; then
+    #     pr_fail "No $pipfile present, can only freeze lock packages."
+    #     pr_fail "Trying running the 'vcin' command first to lock the packages."
+    #     return
+    # fi
 
-    # _backup_if_exists "$vd/$VC_VENV_REQFILE"
+    # # _backup_if_exists "$vd/$VC_VENV_REQFILE"
 
-    eval vcpkgs --lock-file $pipfile freeze >! "$vd/${VC_VENV_REQFILE}.new"
-    eval vcpkgs --lock-file $pipfile --dev freeze >! "$vd/dev-${VC_VENV_REQFILE}.new"
+    # eval vcpkgs --lock-file $pipfile freeze >! "$vd/${VC_VENV_REQFILE}.new"
+    # eval vcpkgs --lock-file $pipfile --dev freeze >! "$vd/dev-${VC_VENV_REQFILE}.new"
 
-    if [[ -f "$vd/${VC_VENV_REQFILE}.new"   ]]; then
-        mv -f "$vd/${VC_VENV_REQFILE}.new" "$vd/${VC_VENV_REQFILE}"
-    fi
+    # if [[ -f "$vd/${VC_VENV_REQFILE}.new"   ]]; then
+    #     mv -f "$vd/${VC_VENV_REQFILE}.new" "$vd/${VC_VENV_REQFILE}"
+    # fi
 
-    if [[ -f "$vd/dev-${VC_VENV_REQFILE}.new" ]]; then
-        mv -f "$vd/dev-${VC_VENV_REQFILE}.new" "$vd/dev-${VC_VENV_REQFILE}"
-    fi
+    # if [[ -f "$vd/dev-${VC_VENV_REQFILE}.new" ]]; then
+    #     mv -f "$vd/dev-${VC_VENV_REQFILE}.new" "$vd/dev-${VC_VENV_REQFILE}"
+    # fi
 
-    pr_info "\nFreezing requirements..."
-    cat "$vd/$VC_VENV_REQFILE"
+    # pr_info "\nFreezing requirements..."
+    # cat "$vd/$VC_VENV_REQFILE"
 
-    pr_info "\nFreezing devlopment requirements..."
-    cat "$vd/dev-${VC_VENV_REQFILE}"
+    # pr_info "\nFreezing devlopment requirements..."
+    # cat "$vd/dev-${VC_VENV_REQFILE}"
 }
 
 function _vcactivate()
