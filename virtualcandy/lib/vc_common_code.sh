@@ -134,7 +134,7 @@ _vc_ignore()
 
 
 # Start a new virtualenv, or
-# rebuild one from a requirements.txt file.
+# rebuild one from a Pipenv file.
 function _vcstart()
 {
     _vc_source_project_file
@@ -153,8 +153,8 @@ function _vcstart()
     pr_info "Pre-Activating..."
     . $vname/bin/activate
 
-    # install pipenv!
-    pr_info "Installing pipenv"
+    # install local pipenv!
+    pr_info "Installing project pipenv"
     pip install pipenv
 
     # Do a little dance to get the virtualenv pipenv into our path
@@ -171,7 +171,6 @@ function _vcstart()
         # Install any additional packages given with the command,
         # then lock and freeze them
         _install $@
-        vcfreeze 'lock'
     fi
 
     if [[ -n "$VC_VENV_INITIAL_PKGS" ]]; then
@@ -179,7 +178,6 @@ function _vcstart()
         # then lock and freeze them
         pr_info "Installing initial packages: $VC_VENV_INITIAL_PKGS"
         _install "$VC_VENV_INITIAL_PKGS"
-        vcfreeze 'lock'
     fi
 
    # Create a .vc_proj file if one doesn't exist
@@ -263,51 +261,6 @@ function _vcfindenv()
     fi
 
     echo $res
-}
-
-function _vcfreeze()
-{
-    pr_fail "Freeze is deprecated"
-    # local vd=$(vcfinddir)
-
-    # if [[ -z "$vd" ]]; then
-    #     pr_fail "Unable to determine virtualenv project directory"
-    #     return
-    # fi
-
-    # # make sure virutalenv is activated
-    # vcactivate
-
-    # if [[ $1 == "lock" ]]; then
-    #     pipenv lock
-    # fi
-
-    # local pipfile="$(pipenv --bare --where)/Pipfile.lock"
-
-    # if [[ ! -f $pipfile ]]; then
-    #     pr_fail "No $pipfile present, can only freeze lock packages."
-    #     pr_fail "Trying running the 'vcin' command first to lock the packages."
-    #     return
-    # fi
-
-    # # _backup_if_exists "$vd/$VC_VENV_REQFILE"
-
-    # eval vcpkgs --lock-file $pipfile freeze >! "$vd/${VC_VENV_REQFILE}.new"
-    # eval vcpkgs --lock-file $pipfile --dev freeze >! "$vd/dev-${VC_VENV_REQFILE}.new"
-
-    # if [[ -f "$vd/${VC_VENV_REQFILE}.new"   ]]; then
-    #     mv -f "$vd/${VC_VENV_REQFILE}.new" "$vd/${VC_VENV_REQFILE}"
-    # fi
-
-    # if [[ -f "$vd/dev-${VC_VENV_REQFILE}.new" ]]; then
-    #     mv -f "$vd/dev-${VC_VENV_REQFILE}.new" "$vd/dev-${VC_VENV_REQFILE}"
-    # fi
-
-    # pr_info "\nFreezing requirements..."
-    # cat "$vd/$VC_VENV_REQFILE"
-
-    # pr_info "\nFreezing devlopment requirements..."
-    # cat "$vd/dev-${VC_VENV_REQFILE}"
 }
 
 function _vcactivate()
@@ -483,7 +436,6 @@ function _vc_pkgskel()
     mkdir -p "$pkg_name/tests"
     mkdir -p "$pkg_name/$pkg_name_u"
     touch "$pkg_name/LICENSE.txt"
-    touch "$pkg_name/requirements.txt"
 
     # Create some boilerplate
     echo "# $pkg_name_title\n" > $pkg_name/README.rst
@@ -526,9 +478,6 @@ function _vc_proj()
     # suitable for a skeleton .vc_proj file
     echo "# VC_PYTHON_EXE The python executable name to use"
     echo "VC_PYTHON_EXE='$VC_PYTHON_EXE'"
-    echo ""
-    echo "# VC_VENV_REQFILE The name of the requirements file to use for standard packaging"
-    echo "VC_VENV_REQFILE='$VC_VENV_REQFILE'"
     echo ""
     echo "# VC_VIRTUALENV_EXE The name of the virtualenv executable to use"
     echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"
