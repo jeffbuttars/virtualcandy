@@ -180,7 +180,7 @@ function _vcstart()
     if [[ -n "$VC_VENV_INITIAL_DEV_PKGS" ]]; then
         # Install any initial development packages given by the environment,
         pr_info "Installing initial deveopment packages: $VC_VENV_INITIAL_DEV_PKGS"
-        _install "$VC_VENV_INITIAL_DEV_PKGS"
+        _install --dev "$VC_VENV_INITIAL_DEV_PKGS"
     fi
 
 
