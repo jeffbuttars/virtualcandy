@@ -163,8 +163,6 @@ function _vcstart()
     . $vname/bin/activate
     pr_info "Re-Activating after pipenv install, $(which pipenv)"
 
-    vcpkgs convert
-
    # Initialize pipenv and install any packages we track
     _install
     if [[ -n "$1" ]]; then
@@ -174,11 +172,17 @@ function _vcstart()
     fi
 
     if [[ -n "$VC_VENV_INITIAL_PKGS" ]]; then
-        # Install any additional packages given with the command,
-        # then lock and freeze them
+        # Install any initial packages given by the environment,
         pr_info "Installing initial packages: $VC_VENV_INITIAL_PKGS"
         _install "$VC_VENV_INITIAL_PKGS"
     fi
+
+    if [[ -n "$VC_VENV_INITIAL_DEV_PKGS" ]]; then
+        # Install any initial development packages given by the environment,
+        pr_info "Installing initial deveopment packages: $VC_VENV_INITIAL_DEV_PKGS"
+        _install "$VC_VENV_INITIAL_DEV_PKGS"
+    fi
+
 
    # Create a .vc_proj file if one doesn't exist
    if [[ ! -f $VC_PROJECT_FILE ]]; then
@@ -487,4 +491,13 @@ function _vc_proj()
     echo ""
     echo "# PIPENV_VENV_IN_PROJECT"
     echo "export PIPENV_VENV_IN_PROJECT=$VC_VENV_NAME"
+    echo ""
+    echo "### Initial packages always installed on project creation ###"
+    echo "# VC_VENV_INITIAL_PKGS"
+    echo "export VC_VENV_INITIAL_PKGS=$VC_VENV_INITIAL_PKGS"
+    echo ""
+    echo "# VC_VENV_INITIAL_DEV_PKGS"
+    echo "export VC_VENV_INITIAL_DEV_PKGS=$VC_VENV_INITIAL_DEV_PKGS"
+
+
 }
