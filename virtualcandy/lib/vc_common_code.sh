@@ -74,13 +74,8 @@ _vc_source_project_file()
     # If VIRTUAL_ENV is set, source the proj file in that dir, if it exists.
     # Else, look in the current dir
     # Otherwise, try to find it with 'pipenv --where'.
-    local vpf="$PWD/$VC_PROJECT_FILE"
-
-    if [[ -n "$VIRTUAL_ENV" ]]; then
-        vpf="$(dirname $VIRTUAL_ENV)/$VC_PROJECT_FILE"
-    elif [[ ! -f $vpf ]]; then
-        vpf="$(pipenv --where)/$VC_PROJECT_FILE"
-    fi
+    local vdir=$(vcfinddir)
+    local vpf="$vdir/$VC_PROJECT_FILE"
 
     if [[ -f "$vpf" ]]; then
         if [[ "$SHELL" == "bash" ]]; then
@@ -94,27 +89,39 @@ _vc_source_project_file()
 
 function _vcfinddir()
 {
-    cur=$PWD
-    vname=$VC_VENV_NAME
-    found='false'
+    # 1 If VIRTUAL_ENV is set, use it's value
+    # 2 If 1 fails, ask pipenv
+    # 3 If 2 fails, traverse up the file system
+    local cur=$PWD
+    local vname=$VC_VENV_NAME
+    local found='false'
+    local vpf=""
 
+    if [[ -n "$VIRTUAL_ENV" ]]; then
+        vpf="$(dirname $VIRTUAL_ENV)"
+    else
+        vpf=$(PIPENV_VERBOSITY=-1 pipenv --where --bare)
+    fi
+
+    if [[ -n $vpf ]]; then
+        if [[ -d "$vpf/$vname" ]]; then
+            echo $vpf
+            return 0
+        fi
+    fi
+
+    # Traverse up the filesystem until something is found or we reach the top
     while [[ "$cur" != "/" ]]; do
         if [[ -d "$cur/$vname" ]]; then
             found="true"
             echo "$cur"
-            break
+            return 0
         fi
 
         cur=$(dirname $cur)
     done
 
-    if [[ "$cur" == "/" ]]; then
-        found="false"
-    fi
-
-    if [[ "$found" == "false" ]]; then
-        echo ""
-    fi
+    echo ""
 }
 
 _vc_ignore()
@@ -153,6 +160,9 @@ function _vcstart()
     pr_info "Pre-Activating..."
     . $vname/bin/activate
 
+    pr_info "Updating pip to the latest for the virtualenv"
+    pip install --upgrade pip
+
     # install local pipenv!
     pr_info "Installing project pipenv"
     pip install pipenv
@@ -183,7 +193,6 @@ function _vcstart()
         _install --dev "$VC_VENV_INITIAL_DEV_PKGS"
     fi
 
-
    # Create a .vc_proj file if one doesn't exist
    if [[ ! -f $VC_PROJECT_FILE ]]; then
       _vc_proj > $VC_PROJECT_FILE
@@ -199,21 +208,23 @@ function _vcup()
     local vdir=$(vcfinddir)
     local vname=$VC_VENV_NAME
 
-    reqlist="$vdir/$VC_VENV_REQFILE"
-
     if [ -n "$1" ]; then
         local def_pkgs=''
         local dev_pkgs=''
-        local pipfile="$(pipenv --bare --where).lock"
+        local pipfile="$vdir/Pipfile.lock"
 
         for pkg in $@ ; do
-            local has_pkg=$(eval "vcpkgs --lock-file $pipfile info $pkg")
+            $develop=$(cat $pipfile | jq "select(.develop.$pkg)")
+            $default=$(cat $pipfile | jq "select(.default.$pkg)")
+
+            local has_pkg="${develop}${default}"
+
             if [[ -z $has_pkg ]]; then
                 pr_fail "The package '$pkg' is not installed, bailing out."
                 return 1
             fi
 
-            if [[ $has_pkg == 'develop' ]]; then
+            if [[ -n $develop ]]; then
                 dev_pkgs="$dev_pkgs $pkg"
             else
                 def_pkgs="$def_pkgs $pkg"
@@ -230,7 +241,6 @@ function _vcup()
 
         if [[ -n "$dev_pkgs" ]]; then
             pr_info "Removing development packages : $dev_pkgs"
-            pr_info "(NOTE: removing development packages with pipenv has been problematic)"
             eval pipenv uninstall $dev_pkgs
 
             pr_pass "Updating development packages: $dev_pkgs "
@@ -238,15 +248,8 @@ function _vcup()
         fi
 
     else
-        # pr_info "Removing lock file..."
-        # rm -f "$vdir/Pipfile.lock"
-        # pr_info "Re-installing pipenv..."
-        # pip install -I pipenv
-        # pip install -I urllib3
-        pr_info "Updating packages..."
+        pr_info "Updating all packages..."
         pipenv update
-        # pr_info "Updating dev packages..."
-        # pipenv update --dev
     fi
 
     res="$?"
