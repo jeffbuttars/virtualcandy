@@ -1,0 +1,29 @@
+#!/bin/bash
+# Copyright © 2018 Jeff Buttars. All Rights Reserved.
+
+libdir=$(python -c "import os; \
+    from distutils.sysconfig import get_python_lib; \
+    print(os.path.join(get_python_lib(), 'virtualcandy', 'lib'))\
+    ")
+
+cur_shell=$(basename $SHELL)
+if [[ -n $ZSH_NAME ]]; then
+    cur_shell=zsh
+fi
+
+incl="$libdir/virtualcandy.${cur_shell}"
+
+src="$HOME/.bashrc"
+
+if [[ "$cur_shell" == 'zsh' ]]; then
+     src="$HOME/.zshrc"
+fi
+
+cat <<EOF
+# To activate Virtualcandy for your shell
+# add the following 3 lines into your ${src} file
+
+if [[ -f "$incl" ]]; then
+    . "$incl"
+fi
+EOF
