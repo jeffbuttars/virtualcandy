@@ -7,6 +7,9 @@ PKG_VER := $(shell python -c "from __future__ import print_function; import $(PK
 
 .DEFAULT:
 dist: clean
+	find ./virtualcandy -type f | xargs chmod 644
+	find ./virtualcandy -type d | xargs chmod 755
+	chmod 755 ./virtualcandy/vcshellinstaller
 	umask 0022; python ./setup.py sdist
 
 test:

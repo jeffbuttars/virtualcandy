@@ -47,7 +47,7 @@ fi
 if [[ -z $VC_VIRTUALENV_EXE ]]
 then
 
-    VC_VIRTUALENV_EXE=virtualenv
+    VC_VIRTUALENV_EXE='python -m venv'
 
     # If we think we're using python2, try to use virtualenv2 if
     # it's available
@@ -333,7 +333,13 @@ _install()
 
     if [[ -z $1 ]]
     then
-        pr_info "Installing project packages..."
+        # If a lock file exists, sync to it. Otherwise let pipenv do it's thing
+        if [[ -f "$(vcfinddir)/Pipfile.lock" ]]; then
+            pr_info "Installing, via sync, locked project packages..."
+            args='sync'
+        else
+            pr_info "Installing unlocked project packages..."
+        fi
 
         if [[ $PYTHON_ENV == 'debug' ]]; then
             args="$args --dev"
