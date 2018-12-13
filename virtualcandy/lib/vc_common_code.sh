@@ -71,9 +71,6 @@ _vcdeactivate()
 
 _vc_source_project_file()
 {
-    # If VIRTUAL_ENV is set, source the proj file in that dir, if it exists.
-    # Else, look in the current dir
-    # Otherwise, try to find it with 'pipenv --where'.
     local vdir=$(vcfinddir)
     local vpf="$vdir/$VC_PROJECT_FILE"
 
@@ -100,7 +97,7 @@ function _vcfinddir()
     if [[ -n "$VIRTUAL_ENV" ]]; then
         vpf="$(dirname $VIRTUAL_ENV)"
     else
-        vpf=$(PIPENV_VERBOSITY=-1 pipenv --where --bare)
+        vpf=$(PIPENV_VERBOSITY=-1 pipenv --where --bare 2>/dev/null)
     fi
 
     if [[ -n $vpf ]]; then
@@ -471,10 +468,12 @@ function _vc_pkgskel()
 
 function _vc_clean()
 {
+    pipenv clean
     # Do some basic python specific and general cleaning from current directory.
     # Args will be treated as find -iname parameters and be deleted!
     find . -iname '*.pyc' | xargs rm -fv
     find . -iname '*.pyo' | xargs rm -fv
+    find . -iname '__pycache__' | xargs rm -fv
 
     if [[ -n "$1" ]]; then
         if [[ $REPLY =~ ^[yY]$ ]]; then
