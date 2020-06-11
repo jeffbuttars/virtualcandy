@@ -10,6 +10,8 @@
 THIS_FILE=$0:A
 export THIS_DIR=$(dirname $THIS_FILE)
 
+POETRY_COMPLETION_FILE="${HOME}/.zfunc/_poetry"
+
 source "$THIS_DIR/vc_common_code.sh"
 
 function vcfinddir()
@@ -121,13 +123,18 @@ fi
 zshexit_functions=(${zshexit_functions[@]} "_vc_exit")
 
 
-#compdef pipenv
-_pipenv() {
-  eval $(env COMMANDLINE="${words[1,$CURRENT]}" _PIPENV_COMPLETE=complete-zsh  pipenv)
-}
-if [[ "$(basename ${(%):-%x})" != "_pipenv" ]]; then
-  autoload -U compinit && compinit
-  compdef _pipenv pipenv
+# Install the command completion if needed
+if [[ ! -f ${POETRY_COMPLETION_FILE} ]]; then
+    mkdir -p $(dirname ${POETRY_COMPLETION_FILE})
+    poetry completions zsh > ${POETRY_COMPLETION_FILE}
+    echo "You'll need to restart your shell for the Poetry completions to take effect"
+fi
+
+# if the completion file is older than 7 days, replace it.
+comp_file_age=$((($(date +%s) - $(date +%s -r "${POETRY_COMPLETION_FILE}")) / 86400))
+if [[ $comp_file_age -gt 7 ]]
+then
+    poetry completions zsh > ${POETRY_COMPLETION_FILE}
 fi
 
 # vim:set ft=zsh:

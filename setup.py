@@ -28,12 +28,12 @@ setup(
        'Topic :: Internet',
     ],
 
-    install_requires=['pipenv'],
+    install_requires=[],
     scripts=['virtualcandy/vcshellinstaller'],
     package_data={'virtualcandy': ['lib/*', 'lib/tmpl/*']},
 
     #  data_files=[
-    #      (
+    # pipenv     (
     #          '/etc/profile.d/virtualcandy',
     #          ['virtualcandy/vc_common_code.sh', 'virtualcandy/vc_config.sh',
     #           'virtualcandy/virtualcandy.sh', 'virtualcandy/virtualcandy.zsh'

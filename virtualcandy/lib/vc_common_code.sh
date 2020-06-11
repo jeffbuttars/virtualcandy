@@ -16,8 +16,6 @@ KWHT="\x1B[37m"
 TMPL_DIR="${THIS_DIR}/tmpl"
 . "${THIS_DIR}/vc_config.sh"
 
-# export _VC_DEF_CONFIG="${THIS_DIR}/vc_config.sh"
-
 pr_pass()
 {
     echo -en "${KGRN}$*${KNRM}\n" >&2
@@ -71,7 +69,7 @@ _vcdeactivate()
 
 _vc_source_project_file()
 {
-    local vdir=$(vcfinddir)
+    local vdir=$(_vcfinddir)
     local vpf="$vdir/$VC_PROJECT_FILE"
 
     if [[ -f "$vpf" ]]; then
@@ -87,7 +85,7 @@ _vc_source_project_file()
 function _vcfinddir()
 {
     # 1 If VIRTUAL_ENV is set, use it's value
-    # 2 If 1 fails, ask pipenv
+    # 2 If 1 fails, ask poetry
     # 3 If 2 fails, traverse up the file system
     local cur=$PWD
     local vname=$VC_VENV_NAME
@@ -97,7 +95,7 @@ function _vcfinddir()
     if [[ -n "$VIRTUAL_ENV" ]]; then
         vpf="$(dirname $VIRTUAL_ENV)"
     else
-        vpf=$(PIPENV_VERBOSITY=-1 pipenv --where --bare 2>/dev/null)
+        vpf=$(dirname $(poetry env info --path 2>/dev/null))
     fi
 
     if [[ -n $vpf ]]; then
@@ -124,12 +122,13 @@ function _vcfinddir()
 _vc_ignore()
 {
     # Add a git ignore with python friendly defaults.
-    local igfile="$(vcfinddir)/.gitignore"
+    local igfile="$(_vcfinddir)/.gitignore"
 
     if [[ ! -f $igfile ]]; then
         echo "$VC_VENV_NAME" > $igfile
         echo "*.pyo" >> $igfile
         echo "*.pyc" >> $igfile
+        echo "__pycache__" >> $igfile
         git add $igfile
     else
         echo "A .gitignore already exists, doing nothing."
@@ -138,7 +137,7 @@ _vc_ignore()
 
 
 # Start a new virtualenv, or
-# rebuild one from a Pipenv file.
+# rebuild one using poetry
 function _vcstart()
 {
     _vc_source_project_file
@@ -147,7 +146,7 @@ function _vcstart()
 
     if [[ -e "$vname" ]]; then
         pr_fail "A virtualenv already exists here, acitvating and bailing out!"
-        vcactivate
+        _vcactivate
         return 1
     fi
 
@@ -160,17 +159,7 @@ function _vcstart()
     pr_info "Updating pip to the latest for the virtualenv"
     pip install --upgrade pip
 
-    # install local pipenv!
-    pr_info "Installing project pipenv"
-    pip install pipenv
-
-    # Do a little dance to get the virtualenv pipenv into our path
-    _vcdeactivate
-    pr_info "Deactivating after pipenv install..."
-    . $vname/bin/activate
-    pr_info "Re-Activating after pipenv install, $(which pipenv)"
-
-   # Initialize pipenv and install any packages we track
+   # Initialize poetry and install any packages we track
     _install
     if [[ -n "$1" ]]; then
         # Install any additional packages given with the command,
@@ -199,53 +188,16 @@ function _vcstart()
 }
 
 # Upgrade the nearest virtualenv packages
-# and re-freeze them
 function _vcup()
 {
-    local vdir=$(vcfinddir)
+    local vdir=$(_vcfinddir)
     local vname=$VC_VENV_NAME
 
     if [ -n "$1" ]; then
-        local def_pkgs=''
-        local dev_pkgs=''
-        local pipfile="$vdir/Pipfile.lock"
-
-        for pkg in $@ ; do
-            $develop=$(cat $pipfile | jq "select(.develop.$pkg)")
-            $default=$(cat $pipfile | jq "select(.default.$pkg)")
-
-            local has_pkg="${develop}${default}"
-
-            if [[ -z $has_pkg ]]; then
-                pr_fail "The package '$pkg' is not installed, bailing out."
-                return 1
-            fi
-
-            if [[ -n $develop ]]; then
-                dev_pkgs="$dev_pkgs $pkg"
-            else
-                def_pkgs="$def_pkgs $pkg"
-            fi
-        done
-
-        if [[ -n "$def_pkgs" ]]; then
-            pr_info "Removing production packages: $def_pkgs "
-            eval pipenv uninstall $def_pkgs
-
-            pr_pass "Updating production packages: $def_pkgs "
-            eval pipenv install $def_pkgs
-        fi
-
-        if [[ -n "$dev_pkgs" ]]; then
-            pr_info "Removing development packages : $dev_pkgs"
-            eval pipenv uninstall $dev_pkgs
-
-            pr_pass "Updating development packages: $dev_pkgs "
-            eval pipenv install --dev $dev_pkgs
-        fi
-
+        pr_info "Updating packages..."
+        poetry update $@
     else
-        pr_info "Updating all packages..."
+        pr_info "Updating packages..."
         pipenv update
     fi
 
@@ -256,37 +208,40 @@ function _vcup()
 function _vcfindenv()
 {
     cur=$PWD
-    local vdir=$(vcfinddir)
+    local vdir=$(_vcfinddir)
     local vname=$VC_VENV_NAME
     local res=""
 
     if [[ -n "$vdir" ]]; then
+        # if [[ "$(_under_envdir)" ]]; then
+        #     res="$vdir/$vname"
+        # fi
         res="$vdir/$vname"
     fi
+
 
     echo $res
 }
 
 function _vcactivate()
 {
-    # Prefer a new shell environment via 'pipenv shell' if it's configured
+    # Prefer a new shell environment via 'poetry shell' if it's configured
     if [[ "$VC_VENV_NEW_SHELL" == 'true' ]]; then
-        # The new shell will try to activate when it's started,
-        # so avoid the nesting warning from pipenv
-        if [[ -n $PIPENV_ACTIVE ]]; then
+        if [[ -n $POETRY_ACTIVE ]]; then
+            # Already in an active Poetry env
             return
         fi
 
         pr_info "Activating environment in a new shell ..."
         _vc_source_project_file
-        pipenv shell
+        poetry shell
         return
     fi
 
     local vname=$VC_VENV_NAME
     local vloc=''
 
-    vloc=$(vcfindenv)
+    vloc=$(_vcfindenv)
 
     if [[ -n "$vloc" ]]; then
        pr_pass "Activating ~${vloc#$HOME/}"
@@ -295,8 +250,9 @@ function _vcactivate()
        # There is no guarentee we sourced on the first call, and not necessary.
        # But we _should_ source anytime things are activated and we have a known venv dir.
        _vc_source_project_file
-    else
-       pr_fail "No virtualenv named $vname found."
+        # else
+        # fail silently ?
+        #    pr_fail "No virtualenv named $vname found."
     fi
 }
 
@@ -326,28 +282,20 @@ function _vcmod()
 _install()
 {
     _vc_source_project_file
-    local args='install'
+
+    # If no project file is found, initialize now
+    if [[ ! -f "$(_vcndfinddir)/pyproject.toml" ]]; then
+        pr_info "Initializing project directory"
+        poetry init --no-interaction
+    fi
 
     if [[ -z $1 ]]
     then
-        # If a lock file exists, sync to it. Otherwise let pipenv do it's thing
-        if [[ -f "$(vcfinddir)/Pipfile.lock" ]]; then
-            pr_info "Installing, via sync, locked project packages..."
-            args='sync'
-        else
-            pr_info "Installing unlocked project packages..."
-        fi
-
-        if [[ $PYTHON_ENV == 'debug' ]]; then
-            args="$args --dev"
-            pr_info "\tInstalling project dev packages as well"
-        fi
-
-        eval pipenv $args
+        pr_info "Installing existing project..."
+        eval poetry install
     else
-        # Install whatever params are given
-        args="$args $@"
-        eval pipenv $args
+        # Add whatever params are given as arguments
+        eval poetry add $@
     fi
 }
 
@@ -358,16 +306,54 @@ _vcin()
 
 _vcrem()
 {
-    eval pipenv uninstall $@
+    eval poetry remove $@
+}
+
+_under_envdir()
+{
+    local vdir=$(_vcfinddir)
+    # pr_info "_under_envdir $vdir"
+
+    if [[ -z $vdir ]]; then
+        # pr_info "_under_envdir nope"
+        echo ""
+        return 0
+    fi
+
+    # pr_info "_under_envdir checking '${PWD##$vdir}' == '$PWD'"
+    # look for a common ancestor
+    # If there is no common ancestor, PWD will equal the lhs
+    if [[ "${PWD##$vdir}" == "$PWD" ]]; then
+        # pr_info "_under_envdir checking '${PWD##$vdir}' == '$PWD', NOPE"
+        echo ""
+        return 0
+    fi
+
+    # pr_info "_under_envdir YUP $vdir"
+    echo $vdir
 }
 
 function _vc_auto_activate()
 {
     # see if we're under a virtualenv.
-    local c_venv="$(vcfindenv)"
+    local c_venv="$(_vcfindenv)"
+    local under_venv="$(_under_envdir)"
+
+    # pr_info "auto a, c_venv: $c_venv, under_venv: $under_venv"
+
+    if [[ -z $under_venv ]]; then
+        if [[ $VIRTUAL_ENV ]]; then
+            # Not under the $VIRTUAL_ENV environment
+            pr_info "Deactivating ${VIRTUAL_ENV#$HOME/}"
+            if [[ -n $POETRY_ACTIVE ]]; then
+                exit
+            else
+                _vcdeactivate
+            fi
+        fi
+    fi
 
     if [[ -n "$c_venv" ]]; then
-        # We're in/under an environment.
         # If we're activated, switch to the new one if it's different from the
         # current.
         if [[ -n "$VIRTUAL_ENV" ]]; then
@@ -380,25 +366,18 @@ function _vc_auto_activate()
         fi
 
         if [[ -z $VIRTUAL_ENV ]]; then
-            vcactivate
+            _vcactivate
         fi
-    elif [[ -n "$VIRTUAL_ENV" ]]; then
-        # We've left an environment, so deactivate.
-        pr_info "Deactivating ~/${VIRTUAL_ENV#$HOME/}\n"
-        if [[ -n $PIPENV_ACTIVE ]]; then
-            exit
-        fi
-       _vcdeactivate
     fi
 }
 
 
 function _vc_reset()
 {
-    local to="$(vcfindenv)"
+    local to="$(_vcfindenv)"
     # If we can't find an env and the current directory 'looks' like a project, use cwd
     if [[ ! -d "$to" ]]; then
-        if [[ -f 'Pipfile' ]] || [[ -f "$VC_VENV_REQFILE" ]]; then
+        if [[ -f 'pyproject.toml' ]] || [[ -f "$VC_VENV_REQFILE" ]]; then
             to="$PWD/$VC_VENV_NAME"
             mkdir $to
             pr_info "vcreset using current directory $PWD"
@@ -448,8 +427,8 @@ function _vc_pkgskel()
     touch "$pkg_name/LICENSE.txt"
 
     # Create some boilerplate
-    echo "# $pkg_name_title\n" > $pkg_name/README.rst
-    echo "include LICENSE.txt\ninclude README.rst" > "$pkg_name/MANIFEST.in"
+    echo "# $pkg_name_title\n" > $pkg_name/README.md
+    echo "include LICENSE.txt\ninclude README.md" > "$pkg_name/MANIFEST.in"
 
     # Add an __init__.py with version vars
     tmp_out=$(. "${TMPL_DIR}/pkg_init.tmpl.sh")
@@ -459,16 +438,11 @@ function _vc_pkgskel()
     tmp_out=$(. "${TMPL_DIR}/pkg_setup.tmpl.sh")
     echo "$tmp_out" > "$pkg_name/setup.py"
 
-    # Add a Makefile
-    tmp_out=$(. "${TMPL_DIR}/pkg_makefile.tmpl.sh")
-    echo "$tmp_out" > "$pkg_name/Makefile"
-
     return 0
 }
 
 function _vc_clean()
 {
-    pipenv clean
     # Do some basic python specific and general cleaning from current directory.
     # Args will be treated as find -iname parameters and be deleted!
     find . -iname '*.pyc' | xargs rm -fv
@@ -494,11 +468,14 @@ function _vc_proj()
     echo "# VC_VIRTUALENV_EXE The name of the virtualenv executable to use"
     echo "VC_VIRTUALENV_EXE='$VC_VIRTUALENV_EXE'"
     echo ""
-    echo "# VC_VENV_NEW_SHELL use 'pipenv shell' to enter the virtualenv in a new shell"
+    echo "# VC_VENV_NEW_SHELL use 'poetry shell' to enter the virtualenv in a new shell"
     echo "VC_VENV_NEW_SHELL='false'"
     echo ""
-    echo "# PIPENV_VENV_IN_PROJECT"
-    echo "export PIPENV_VENV_IN_PROJECT=$VC_VENV_NAME"
+    echo "# POETRY_VIRTUALENVS_IN_PROJECT"
+    echo "export POETRY_VIRTUALENVS_IN_PROJECT=true"
+    echo ""
+    echo "# POETRY_VIRTUALENVS_CREATE"
+    echo "export POETRY_VIRTUALENVS_CREATE=true"
     echo ""
     echo "### Initial packages always installed on project creation ###"
     echo "# VC_VENV_INITIAL_PKGS"

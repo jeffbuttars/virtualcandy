@@ -7,6 +7,8 @@
 # Source in the common code first, override
 # what's necessary
 
+POETRY_COMPLETION_FILE="/tmp/${USER}_poetry.bash-completion"
+
 export THIS_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 . "$THIS_DIR/vc_common_code.sh"
 
@@ -112,15 +114,13 @@ if [[ "$VC_AUTO_ACTIVATION" == "true" ]]; then
     fi
 fi
 
+# Install the command completion if needed
+if [[ ! -f ${POETRY_COMPLETION_FILE} ]]; then
+    poetry completions bash > ${POETRY_COMPLETION_FILE}
+fi
 
-_pipenv_completion() {
-    local IFS=$'\t'
-    COMPREPLY=( $( env COMP_WORDS="${COMP_WORDS[*]}" \
-                   COMP_CWORD=$COMP_CWORD \
-                   _PIPENV_COMPLETE=complete-bash $1 ) )
-    return 0
-}
-
-complete -F _pipenv_completion -o default pipenv
+if [[ -f ${POETRY_COMPLETION_FILE} ]]; then
+    . ${POETRY_COMPLETION_FILE}
+fi
 
 # vim:set ft=sh:

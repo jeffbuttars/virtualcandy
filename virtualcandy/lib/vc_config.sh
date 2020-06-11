@@ -27,8 +27,12 @@ then
     export VC_AUTO_ACTIVATION=true
 fi
 
-if [[ -z $PIPENV_VENV_IN_PROJECT ]]; then
-    export PIPENV_VENV_IN_PROJECT="$VC_VENV_NAME"
+if [[ -z $POETRY_VIRTUALENVS_IN_PROJECT ]]; then
+    export POETRY_VIRTUALENVS_IN_PROJECT=true
+fi
+
+if [[ -z $POETRY_VIRTUALENVS_CREATE ]]; then
+    export POETRY_VIRTUALENVS_CREATE=true
 fi
 
 # Initial packages.

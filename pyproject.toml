@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "virtualcandy"
+version = "2.0.0"
+description = "Virtualcandy provides Virtualenv_ integration with your Bash or Zsh shell"
+authors = ["Jeff Buttars <jeffbuttars@gmail.com>"]
+license = "BSD-3-Clause"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+
+[tool.poetry.dev-dependencies]
+pynvim = "^0.4.1"
+flake8 = "^3.8.3"
+isort = "^4.3.21"
+flake8-isort = "^3.0.0"
+black = "^19.10b0"
+flake8-black = "^0.2.0"
+
+[tool.black]
+line-length = 99
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"

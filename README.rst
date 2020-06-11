@@ -1,14 +1,14 @@
 virtualcandy
 ============
 
-Smart shell integration for Python_'s Virtualenv_ with Pipenv_
+Smart shell integration for Python_'s Virtualenv_ with poetry_
 -----------------------------------------------------------------
 
 
 Virtualcandy provides Virtualenv_ integration with your Bash or Zsh shell
 that provides automatic activation and decativation of Virtualenv_ as you
 navigate between Python_ projects that utilize Virtualenv_. Virtualcandy
-also provides extra utilities to make working with Pip, Virtualenv_ and Pipenv_
+also provides extra utilities to make working with Pip, Virtualenv_ and Poetry_
 a more cohesive experience.
 
 This is a set of shell wrappers that I've built, like, and use
@@ -307,9 +307,9 @@ References
 * Python_
 * Virtualenv_
 * [Pip](http://pypi.python.org/pypi/pip)
-* Pipenv_
+* Poetry_
 
 .. _Python: http://www.python.org/
 .. _Virtualenv: http://www.virtualenv.org/en/latest/index.html
-.. _Pipenv: https://github.com/kennethreitz/pipenv
+.. _Poetry: https://python-poetry.org/
 .. _Pip: http://pypi.python.org/pypi/pip
