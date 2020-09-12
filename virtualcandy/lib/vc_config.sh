@@ -14,13 +14,6 @@ then
     export VC_VENV_NEW_SHELL='false'
 fi
 
-# Dev Requirements filename
-# XXX( Depricated)
-if [[ -z $VC_VENV_DEV_REQFILE ]]
-then
-    export VC_VENV_DEV_REQFILE='dev-requirements.txt'
-fi
-
 # Auto activate the virtualenv when it's directory is entered
 if [[ -z $VC_AUTO_ACTIVATION ]]
 then
@@ -55,4 +48,12 @@ then
     fi
 fi
 
-export VC_PROJECT_FILE=".vc_proj"
+if [[ -z $VC_CMD_INIT_ARGS ]]
+then
+    export VC_CMD_INIT_ARGS=""
+fi
+
+if [[ -z $VC_CMD_FREEZE_ARGS ]]
+then
+    export VC_CMD_FREEZE_ARGS=""
+fi
