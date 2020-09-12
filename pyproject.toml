@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "virtualcandy"
-version = "2.0.1"
+version = "3.0.0"
 description = "Virtualcandy provides Virtualenv_ integration with your Bash or Zsh shell"
 authors = ["Jeff Buttars <jeffbuttars@gmail.com>"]
 license = "BSD-3-Clause"

@@ -1,13 +1,6 @@
 
 export VC_VENV_NAME='.venv'
 
-# Requirements filename
-# XXX( Depricated)
-if [[ -z $VC_VENV_REQFILE ]]
-then
-    export VC_VENV_REQFILE='requirements.txt'
-fi
-
 # Activate environment in a new shell, disabled by default
 if [[ -z $VC_VENV_NEW_SHELL ]]
 then
