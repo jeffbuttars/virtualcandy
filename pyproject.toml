@@ -8,6 +8,7 @@ license = "BSD-3-Clause"
 [tool.poetry.dependencies]
 python = "^3.6"
 pip = "^20.1.1"
+flake8 = "^3.8.3"
 
 [tool.poetry.dev-dependencies]
 pynvim = "^0.4.1"
